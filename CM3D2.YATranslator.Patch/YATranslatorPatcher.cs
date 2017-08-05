@@ -46,7 +46,7 @@ namespace CM3D2.YATranslator.Patch
             MethodDefinition processAndRequestTarget = uiLabel.GetMethod("ProcessAndRequest");
             processAndRequestTarget.InjectWith(onTranslateTextHook,
                                                flags: InjectFlags.PassInvokingInstance | InjectFlags.PassFields,
-                                               typeFields: new[] { uiLabel.GetField("mText") });
+                                               typeFields: new[] {uiLabel.GetField("mText")});
             processAndRequestTarget.IsPublic = true;
             processAndRequestTarget.IsPrivate = false;
 

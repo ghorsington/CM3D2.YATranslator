@@ -1,6 +1,7 @@
 using System;
 
-namespace CM3D2.YATranslator.Hook {
+namespace CM3D2.YATranslator.Hook
+{
     public class TextureTranslationEventArgs : EventArgs
     {
         public TextureTranslationEventArgs(string name, string meta)

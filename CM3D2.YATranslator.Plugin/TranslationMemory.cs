@@ -6,7 +6,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using CM3D2.YATranslator.Plugin.Utils;
 
-namespace CM3D2.YATranslator.Plugin {
+namespace CM3D2.YATranslator.Plugin
+{
     public class TranslationMemory
     {
         private const string ASSETS_FOLDER = "Assets";
@@ -211,7 +212,7 @@ namespace CM3D2.YATranslator.Plugin {
                                                                                      StringComparison.CurrentCulture));
                 foreach (string translationLine in translationLines)
                 {
-                    string[] textParts = translationLine.Split(new[] { '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] textParts = translationLine.Split(new[] {'\t'}, StringSplitOptions.RemoveEmptyEntries);
                     if (textParts.Length < 2)
                         continue;
                     string original = textParts[0].Unescape();

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using UnityInjector.ConsoleUtil;
 
 namespace CM3D2.YATranslator.Plugin.Utils

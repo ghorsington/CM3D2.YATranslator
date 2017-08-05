@@ -45,5 +45,11 @@
     <Compile Include="YATranslatorPatcher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CM3D2.YATranslator.Hook\CM3D2.YATranslator.Hook.csproj">
+      <Project>{038e21d6-aee7-4c97-a40b-fffe7feb3646}</Project>
+      <Name>CM3D2.YATranslator.Hook</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

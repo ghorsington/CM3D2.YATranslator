@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using CM3D2.YATranslator.Hook;
 using CM3D2.YATranslator.Plugin.Utils;
 using UnityEngine;
@@ -16,8 +15,6 @@ namespace CM3D2.YATranslator.Plugin
     [PluginName("Yet Another Translator")]
     public class YATranslator : PluginBase
     {
-        private const string CONFIG_PATH = @".\Sybaris\Plugins\UnityInjector\Config\";
-
         private string lastFoundAsset;
         private string lastFoundTexture;
         private string lastLoadedAsset;
@@ -33,14 +30,15 @@ namespace CM3D2.YATranslator.Plugin
         {
             DontDestroyOnLoad(this);
 
-            Logger.WriteLine("Trying to read config!");
+            string dataPath = Path.Combine(Environment.CurrentDirectory, "UnityInjector\\Config");
+
             Settings = ConfigurationLoader.LoadConfig<PluginConfiguration>(Preferences);
             SaveConfig();
             Logger.Verbosity = Settings.VerbosityLevel;
-            Logger.DumpPath = Path.Combine(CONFIG_PATH, "TranslationDumps");
+            Logger.DumpPath = Path.Combine(dataPath, "TranslationDumps");
             Logger.EnableDump = Settings.DumpStrings;
 
-            Memory = new TranslationMemory(CONFIG_PATH, this);
+            Memory = new TranslationMemory(dataPath, this);
             Memory.LoadTranslations();
 
             TranslationHooks.TranslateText += OnTranslateString;
@@ -198,10 +196,10 @@ namespace CM3D2.YATranslator.Plugin
 
             set
             {
-                string[] parts = value.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] parts = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
                 VerbosityLevel level = parts.Aggregate(VerbosityLevel.None,
                                                        (current, part) => current
-                                                                          | (VerbosityLevel)Enum
+                                                                          | (VerbosityLevel) Enum
                                                                                   .Parse(typeof(VerbosityLevel), part));
                 VerbosityLevel = level;
             }

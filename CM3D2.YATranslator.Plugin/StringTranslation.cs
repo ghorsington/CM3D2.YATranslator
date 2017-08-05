@@ -1,7 +1,8 @@
 using System;
 using System.Text.RegularExpressions;
 
-namespace CM3D2.YATranslator.Plugin {
+namespace CM3D2.YATranslator.Plugin
+{
     public class StringTranslation
     {
         public StringTranslation(string original, string translation, int[] levels)
