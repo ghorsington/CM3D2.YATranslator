@@ -14,6 +14,7 @@ ReiPatcher (the Unified Translation Plug-in) and the other for Sybaris (Translat
 However, neither are
 
 * updated for CM3D2 version 1.49 and newer,
+* providing support both for Sybaris and ReiPatcher,
 * are open sourced (while TranslationPlus is available on GitHub, there is no licence, and the plug-in is pretty much a recompiled UTP).
 
 Thus this plug-in was written from scratch while maintaining similar functionality and public API.
@@ -22,6 +23,7 @@ and remove some unneeded quirks.
 
 ## Main features
 
+* Patchers for Sybaris and ReiPatcher (for those "legacy" users)
 * String and asset replacing (pretty much the same)
 * **Fixed** texture replacing
 * **Tagged translations** (the one containing `[HF]`, etc.) no longer require RegExes

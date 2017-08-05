@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{720FB2AE-4FD4-4D86-916F-7A0144223AF5}</ProjectGuid>
+    <ProjectGuid>{8BAA0396-E01B-41C0-8C29-FB429386C167}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CM3D2.YATranslator.Sybaris.Patcher</RootNamespace>
-    <AssemblyName>CM3D2.YATranslator.Sybaris.Patcher</AssemblyName>
+    <RootNamespace>CM3D2.YATranslator.Patch</RootNamespace>
+    <AssemblyName>CM3D2.YATranslator.Patch</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -35,6 +35,9 @@
     </Reference>
     <Reference Include="Mono.Cecil.Inject">
       <HintPath>..\Libs\Mono.Cecil.Inject.dll</HintPath>
+    </Reference>
+    <Reference Include="ReiPatcher">
+      <HintPath>..\Libs\ReiPatcher.exe</HintPath>
     </Reference>
     <Reference Include="System.Core" />
   </ItemGroup>

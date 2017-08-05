@@ -10,7 +10,7 @@ rem SOLUTION-SPECIFIC VARIABLES:
 set hook=CM3D2.YATranslator.Hook
 set plugin=CM3D2.YATranslator.Plugin
 set patchersybaris=CM3D2.YATranslator.Sybaris.Patcher
-set patcherrei=
+set patcherrei=CM3D2.YATranslator.Patch
 
 rem SOLUTION-SPECIFIC VARIABLES END
 
