@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CM3D2.YATranslator.Sybaris.Patcher", "CM3D2.YATranslator.Sybaris.Patcher\CM3D2.YATranslator.Sybaris.Patcher.csproj", "{720FB2AE-4FD4-4D86-916F-7A0144223AF5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CM3D2.YATranslator.Hook", "CM3D2.YATranslator.Hook\CM3D2.YATranslator.Hook.csproj", "{038E21D6-AEE7-4C97-A40B-FFFE7FEB3646}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CM3D2.YATranslator.Plugin", "CM3D2.YATranslator.Plugin\CM3D2.YATranslator.Plugin.csproj", "{1FC36783-AE2B-46EF-93FB-D199509F50DA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{720FB2AE-4FD4-4D86-916F-7A0144223AF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{720FB2AE-4FD4-4D86-916F-7A0144223AF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{720FB2AE-4FD4-4D86-916F-7A0144223AF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{720FB2AE-4FD4-4D86-916F-7A0144223AF5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{038E21D6-AEE7-4C97-A40B-FFFE7FEB3646}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{038E21D6-AEE7-4C97-A40B-FFFE7FEB3646}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{038E21D6-AEE7-4C97-A40B-FFFE7FEB3646}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{038E21D6-AEE7-4C97-A40B-FFFE7FEB3646}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1FC36783-AE2B-46EF-93FB-D199509F50DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FC36783-AE2B-46EF-93FB-D199509F50DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FC36783-AE2B-46EF-93FB-D199509F50DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FC36783-AE2B-46EF-93FB-D199509F50DA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
