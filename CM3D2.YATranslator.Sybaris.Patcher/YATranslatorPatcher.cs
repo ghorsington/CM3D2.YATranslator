@@ -1,14 +1,26 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 using Mono.Cecil.Inject;
 
 namespace CM3D2.YATranslator.Sybaris.Patcher
 {
     public static class YATranslatorPatcher
     {
-        public static readonly string[] TargetAssemblyNames = {"Assembly-CSharp.dll"};
+        public static readonly string[] TargetAssemblyNames = {"Assembly-CSharp.dll", "UnityEngine.UI.dll"};
         private const string HOOK_NAME = "CM3D2.YATranslator.Hook";
+
+        private static readonly Dictionary<string, Action<AssemblyDefinition, AssemblyDefinition>> Patchers =
+                new Dictionary<string, Action<AssemblyDefinition, AssemblyDefinition>>
+                {
+                    {"Assembly-CSharp", PatchAssemblyCSharp},
+                    {"UnityEngine.UI", PatchUi}
+                };
+
         private const string SYBARIS_MANAGED_DIR = @"..\Plugins\Managed";
 
         public static void Patch(AssemblyDefinition assembly)
@@ -17,6 +29,32 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
             string hookDir = $"{SYBARIS_MANAGED_DIR}\\{HOOK_NAME}.dll";
             AssemblyDefinition hookAssembly = AssemblyLoader.LoadAssembly(Path.Combine(assemblyDir, hookDir));
 
+            if (Patchers.TryGetValue(assembly.Name.Name, out var patcher))
+                patcher(hookAssembly, assembly);
+        }
+
+        private static void PatchUi(AssemblyDefinition hookAssembly, AssemblyDefinition assembly)
+        {
+            TypeDefinition hookType = hookAssembly.MainModule.GetType($"{HOOK_NAME}.TranslationHooks");
+            TypeDefinition text = assembly.MainModule.GetType("UnityEngine.UI.Text");
+            TypeDefinition image = assembly.MainModule.GetType("UnityEngine.UI.Image");
+            TypeDefinition maskableGraphic = assembly.MainModule.GetType("UnityEngine.UI.MaskableGraphic");
+
+            MethodDefinition textSetter = text.GetMethod("set_text");
+            MethodDefinition onTranslateConstText = hookType.GetMethod("OnTranslateConstText");
+            textSetter.InjectWith(onTranslateConstText, flags: InjectFlags.PassParametersRef);
+
+            MethodDefinition setSprite = image.GetMethod("set_sprite");
+            MethodDefinition onTranslateSprite = hookType.GetMethod("OnTranslateSprite");
+            setSprite.InjectWith(onTranslateSprite, flags: InjectFlags.PassParametersRef);
+
+            MethodDefinition onEnable = maskableGraphic.GetMethod("OnEnable");
+            MethodDefinition onTranslateGraphic = hookType.GetMethod("OnTranslateGraphic");
+            onEnable.InjectWith(onTranslateGraphic, flags: InjectFlags.PassInvokingInstance);
+        }
+
+        private static void PatchAssemblyCSharp(AssemblyDefinition hookAssembly, AssemblyDefinition assembly)
+        {
             TypeDefinition hookType = hookAssembly.MainModule.GetType($"{HOOK_NAME}.TranslationHooks");
 
             TypeDefinition importCm = assembly.MainModule.GetType("ImportCM");
@@ -24,19 +62,23 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
             TypeDefinition uiLabel = assembly.MainModule.GetType("UILabel");
             TypeDefinition scriptManager = assembly.MainModule.GetType("ScriptManager");
             TypeDefinition scheduleApi = assembly.MainModule.GetType("Schedule.ScheduleAPI");
+            TypeDefinition freeSceneUi = assembly.MainModule.GetType("FreeScene_UI");
+            TypeDefinition trophyUi = assembly.MainModule.GetType("Trophy_UI");
 
             MethodDefinition infoReplace = scheduleApi.GetMethod("InfoReplace");
             MethodDefinition onTranslateInfoText = hookType.GetMethod("OnTranslateInfoText");
             infoReplace.InjectWith(onTranslateInfoText, flags: InjectFlags.PassParametersRef);
 
             MethodDefinition replaceCharaName = scriptManager.GetMethod("ReplaceCharaName", "System.String");
-            MethodDefinition onTranslateTaggedText = hookType.GetMethod("OnTranslateTaggedText");
-            replaceCharaName.InjectWith(onTranslateTaggedText, flags: InjectFlags.PassParametersRef);
+            MethodDefinition onTranslateConstText = hookType.GetMethod("OnTranslateConstText");
+            replaceCharaName.InjectWith(onTranslateConstText, flags: InjectFlags.PassParametersRef);
 
             MethodDefinition loadTextureTarget = importCm.GetMethod("LoadTexture");
             MethodDefinition onArcTextureLoadHook = hookType.GetMethod("OnArcTextureLoad");
+            MethodDefinition onArcTextureLoadedHook = hookType.GetMethod("OnArcTextureLoaded");
             loadTextureTarget.InjectWith(onArcTextureLoadHook,
                                          flags: InjectFlags.PassParametersVal | InjectFlags.ModifyReturn);
+            HookOnTextureLoaded(assembly, onArcTextureLoadedHook);
 
             MethodDefinition onTranslateTextHook = hookType.GetMethod("OnTranslateText");
             MethodDefinition processAndRequestTarget = uiLabel.GetMethod("ProcessAndRequest");
@@ -56,6 +98,22 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
             awakeTarget.InjectWith(onAssetTextureLoadHook,
                                    tag: 0,
                                    flags: InjectFlags.PassInvokingInstance | InjectFlags.PassTag);
+
+            MethodDefinition freeSceneStart = freeSceneUi.GetMethod("FreeScene_Start");
+            freeSceneStart.InjectWith(onTranslateConstText, flags: InjectFlags.PassParametersRef);
+
+            MethodDefinition trophyStart = trophyUi.GetMethod("Trophy_Start");
+            trophyStart.InjectWith(onTranslateConstText, flags: InjectFlags.PassParametersRef);
+        }
+
+        private static void HookOnTextureLoaded(AssemblyDefinition assembly, MethodReference textureLoadedHook)
+        {
+            TypeDefinition importCm = assembly.MainModule.GetType("ImportCM");
+            MethodDefinition loadTextureTarget = importCm.GetMethod("LoadTexture");
+            Instruction retInstruction = loadTextureTarget.Body.Instructions.Last();
+            ILProcessor il = loadTextureTarget.Body.GetILProcessor();
+            il.InsertBefore(retInstruction, il.Create(OpCodes.Ldarg_0));
+            il.InsertBefore(retInstruction, il.Create(OpCodes.Callvirt, assembly.MainModule.Import(textureLoadedHook)));
         }
     }
 }

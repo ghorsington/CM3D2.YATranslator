@@ -92,10 +92,16 @@ namespace CM3D2.YATranslator.Plugin
                 return text;
             }
 
+            bool wasTranslated = translatedStrings.ContainsKey(original);
             if (plugin.Settings.EnableStringReload)
-                original = translatedStrings.TryGetValue(original, out string cachedOriginal)
-                               ? cachedOriginal
-                               : original;
+                original = wasTranslated ? translatedStrings[original] : original;
+            else if (wasTranslated)
+            {
+                Logger.WriteLine(VerbosityLevel.Strings,
+                                 LogLevel.Minor,
+                                 $"Translation::String::Skip {original} (is already translated)");
+                return null;
+            }
             original = original.Replace("\n", "").Trim();
 
             if (string.IsNullOrEmpty(original))

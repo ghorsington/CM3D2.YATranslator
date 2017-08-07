@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace CM3D2.YATranslator.Hook
 {
@@ -8,15 +9,65 @@ namespace CM3D2.YATranslator.Hook
         private static readonly byte[] EmptyTextureData = new byte[0];
 
         public static event EventHandler<TextureTranslationEventArgs> ArcTextureLoad;
+        public static event EventHandler<TextureTranslationEventArgs> ArcTextureLoaded;
         public static event EventHandler<TextureTranslationEventArgs> AssetTextureLoad;
+        public static event EventHandler<GraphicTranslationEventArgs> TranslateGraphic;
+        public static event EventHandler<TextureTranslationEventArgs> SpriteLoad;
         public static event EventHandler<StringTranslationEventArgs> TranslateText;
+
+        public static void OnTranslateGraphic(MaskableGraphic graphic)
+        {
+            GraphicTranslationEventArgs args = new GraphicTranslationEventArgs
+            {
+                Graphic = graphic
+            };
+
+            TranslateGraphic?.Invoke(null, args);
+        }
+
+        public static void OnTranslateSprite(ref Sprite sprite)
+        {
+            if (sprite == null)
+                return;
+
+            string spriteName = sprite.name;
+            bool previouslyTranslated;
+            if (string.IsNullOrEmpty(spriteName) || (previouslyTranslated = spriteName.StartsWith("!")))
+                return;
+
+            TextureTranslationEventArgs args = new TextureTranslationEventArgs(sprite.name, "SPRITE")
+            {
+                OriginalTexture = sprite.texture
+            };
+
+            SpriteLoad?.Invoke(null, args);
+
+            if (args.Data == null)
+                return;
+
+            Sprite newSprite = Sprite.Create(args.Data.CreateTexture2D(), sprite.rect, sprite.pivot);
+            newSprite.name = previouslyTranslated ? spriteName : "!" + spriteName;
+            sprite = newSprite;
+        }
 
         public static void OnTranslateInfoText(ref int nightWorkId, ref string info)
         {
-            OnTranslateTaggedText(ref info);
+            OnTranslateConstText(ref info);
         }
 
-        public static void OnTranslateTaggedText(ref string text)
+        public static TextureResource OnArcTextureLoaded(TextureResource resource, string name)
+        {
+            TextureTranslationEventArgs args = new TextureTranslationEventArgs(name, "ARC")
+            {
+                Data = resource
+            };
+
+            ArcTextureLoaded?.Invoke(null, args);
+
+            return resource;
+        }
+
+        public static void OnTranslateConstText(ref string text)
         {
             StringTranslationEventArgs args = new StringTranslationEventArgs
             {
@@ -49,11 +100,14 @@ namespace CM3D2.YATranslator.Hook
                 return;
 
             string textureName = texture2D.name;
-            bool previouslyTranslated = textureName.StartsWith("!");
-            if (string.IsNullOrEmpty(textureName) || previouslyTranslated && !force)
+            bool previouslyTranslated;
+            if (string.IsNullOrEmpty(textureName) || (previouslyTranslated = textureName.StartsWith("!")) && !force)
                 return;
 
-            TextureTranslationEventArgs args = new TextureTranslationEventArgs(textureName, im.name);
+            TextureTranslationEventArgs args = new TextureTranslationEventArgs(textureName, im.name)
+            {
+                OriginalTexture = texture2D
+            };
 
             AssetTextureLoad?.Invoke(im, args);
 

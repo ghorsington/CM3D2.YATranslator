@@ -41,6 +41,9 @@
     <Reference Include="UnityEngine">
       <HintPath>..\Libs\UnityEngine.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\Libs\UnityEngine.UI.dll</HintPath>
+    </Reference>
     <Reference Include="UnityInjector">
       <HintPath>..\Libs\UnityInjector.dll</HintPath>
     </Reference>

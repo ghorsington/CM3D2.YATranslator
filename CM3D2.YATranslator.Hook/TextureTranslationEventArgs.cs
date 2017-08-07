@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace CM3D2.YATranslator.Hook
 {
@@ -13,13 +14,15 @@ namespace CM3D2.YATranslator.Hook
                                : GetMetaHash(Meta + ":" + Name).ToString("X16");
         }
 
-        public string CompoundHash { get; set; }
+        public string CompoundHash { get; }
 
         public TextureResource Data { get; set; }
 
-        public string Meta { get; set; }
+        public string Meta { get; }
 
-        public string Name { get; set; }
+        public string Name { get; }
+
+        public Texture2D OriginalTexture { get; internal set; }
 
         internal static ulong GetMetaHash(string s)
         {

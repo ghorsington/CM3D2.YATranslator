@@ -37,8 +37,12 @@
     <Reference Include="UnityEngine">
       <HintPath>..\Libs\UnityEngine.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\Libs\UnityEngine.UI.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GraphicTranslationEventArgs.cs" />
     <Compile Include="StringTranslationEventArgs.cs" />
     <Compile Include="TextureTranslationEventArgs.cs" />
     <Compile Include="TranslationHooks.cs" />
