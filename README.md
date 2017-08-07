@@ -26,14 +26,15 @@ and remove some unneeded quirks.
 * Patchers for Sybaris and ReiPatcher (for those "legacy" users)
 * String and asset replacing (pretty much the same)
 * **Fixed** texture replacing
+* **CM3D2 VPVR support**
+  * All strings translateable, all main UI elements replaceable
 * **Tagged translations** (the one containing `[HF]`, etc.) no longer require RegExes
     * This fixed some tagged translations not working (like the ones ending with `...?`)
     * Text scrolling effect now works with translations
 * **Logging and dumping** is improved
   * You can log different asset translation separately
-  * Now also dump texture and asset names [Note 1]
+  * Can dump untranslated assets and textures
 
-[Note 1]: Proper file dumping might be implemented in the future, if there is a need
 
 ## Building
 
