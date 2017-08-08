@@ -54,6 +54,7 @@
     <Compile Include="Utils\ConfigurationLoader.cs" />
     <Compile Include="Utils\Extensions.cs" />
     <Compile Include="Utils\Logger.cs" />
+    <Compile Include="Utils\ResourceType.cs" />
     <Compile Include="YATranslator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

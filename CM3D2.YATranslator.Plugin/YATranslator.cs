@@ -38,9 +38,10 @@ namespace CM3D2.YATranslator.Plugin
 
             processAndRequest = label => processAndRequestMethod.Invoke(label, null);
 
+            Memory = new TranslationMemory(DataPath);
+
             InitConfig();
 
-            Memory = new TranslationMemory(DataPath, this);
             Memory.LoadTranslations();
 
             TranslationHooks.TranslateText += OnTranslateString;
@@ -94,6 +95,8 @@ namespace CM3D2.YATranslator.Plugin
         {
             Settings = ConfigurationLoader.LoadConfig<PluginConfiguration>(Preferences);
             SaveConfig();
+            Memory.LoadResource = Settings.LoadResourceTypes;
+            Memory.RetranslateText = Settings.EnableStringReload;
             Logger.DumpPath = Path.Combine(DataPath, "TranslationDumps");
         }
 
@@ -130,7 +133,7 @@ namespace CM3D2.YATranslator.Plugin
             if (lastFoundAsset != e.Name)
             {
                 lastFoundAsset = e.Name;
-                Logger.WriteLine(VerbosityLevel.Assets,
+                Logger.WriteLine(ResourceType.Assets,
                                  LogLevel.Minor,
                                  $"Translation::FindAsset::{e.Name} [{e.Meta}::{e.CompoundHash}]");
             }
@@ -148,7 +151,7 @@ namespace CM3D2.YATranslator.Plugin
                 if (lastFoundAsset != assetName)
                 {
                     lastFoundAsset = assetName;
-                    Logger.WriteLine(VerbosityLevel.Assets, LogLevel.Minor, $"Translation::TryFindAsset::{assetName}");
+                    Logger.WriteLine(ResourceType.Assets, LogLevel.Minor, $"Translation::TryFindAsset::{assetName}");
                 }
 
                 string assetPath = Memory.GetAssetPath(assetName);
@@ -156,15 +159,13 @@ namespace CM3D2.YATranslator.Plugin
                 if (assetPath == null)
                     continue;
                 if (lastLoadedAsset != assetName)
-                    Logger.WriteLine($"Translation::LoadAsset::{assetName}");
+                    Logger.WriteLine(ResourceType.Assets, $"Translation::LoadAsset::{assetName}");
                 lastLoadedAsset = assetName;
 
                 e.Data = new TextureResource(1, 1, TextureFormat.ARGB32, File.ReadAllBytes(assetPath));
                 return;
             }
 
-            Logger
-                    .DumpLine($"[ASSET][HASH {e.CompoundHash}][BUILDINDEX {SceneManager.GetActiveScene().buildIndex}] {e.Name}");
             Logger.DumpTexture(DumpType.Assets, e.Name, e.OriginalTexture, true);
         }
 
@@ -174,7 +175,7 @@ namespace CM3D2.YATranslator.Plugin
             if (string.IsNullOrEmpty(inputText))
                 return;
 
-            Logger.WriteLine(VerbosityLevel.Strings, LogLevel.Minor, $"Translation::FindString::{inputText}");
+            Logger.WriteLine(ResourceType.Strings, LogLevel.Minor, $"Translation::FindString::{inputText}");
 
             e.Translation = Memory.GetTextTranslation(inputText);
 
@@ -189,7 +190,7 @@ namespace CM3D2.YATranslator.Plugin
             if (lastFoundTexture != textureName)
             {
                 lastFoundTexture = textureName;
-                Logger.WriteLine(VerbosityLevel.Textures, LogLevel.Minor, $"Translation::FindTexture::{textureName}");
+                Logger.WriteLine(ResourceType.Textures, LogLevel.Minor, $"Translation::FindTexture::{textureName}");
             }
 
             string texturePath = Memory.GetTexturePath(textureName);
@@ -198,11 +199,10 @@ namespace CM3D2.YATranslator.Plugin
             {
                 if (e.OriginalTexture != null)
                     Logger.DumpTexture(DumpType.TexSprites, textureName, e.OriginalTexture, true);
-                Logger.DumpLine($"[TEXTURE] {textureName}");
                 return;
             }
             if (lastLoadedTexture != textureName)
-                Logger.WriteLine($"Translation::Texture::{textureName}");
+                Logger.WriteLine(ResourceType.Textures, $"Translation::Texture::{textureName}");
             lastLoadedTexture = textureName;
 
             e.Data = new TextureResource(1, 1, TextureFormat.ARGB32, File.ReadAllBytes(texturePath));
@@ -236,13 +236,10 @@ namespace CM3D2.YATranslator.Plugin
     public class PluginConfiguration
     {
         public bool EnableStringReload = false;
-        public bool LoadAssets = true;
-        public bool LoadStrings = true;
-        public bool LoadTextures = true;
 
         public string Dump
         {
-            get => string.Empty;
+            get => "None";
 
             set
             {
@@ -255,23 +252,39 @@ namespace CM3D2.YATranslator.Plugin
 
         public DumpType[] DumpTypes { get; private set; }
 
-        public string Verbosity
+        public string Load
         {
-            get => "None";
+            get => ResourceType.All.ToString();
 
             set
             {
                 string[] parts = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
-                VerbosityLevel = parts.Aggregate(VerbosityLevel.None,
+                LoadResourceTypes = parts.Aggregate(ResourceType.None,
+                                                    (current, part) => current
+                                                                       | (ResourceType) Enum.Parse(typeof(ResourceType),
+                                                                                                   part.Trim(),
+                                                                                                   true));
+            }
+        }
+
+        public ResourceType LoadResourceTypes { get; private set; }
+
+        public string Verbosity
+        {
+            get => ResourceType.None.ToString();
+
+            set
+            {
+                string[] parts = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
+                VerbosityLevel = parts.Aggregate(ResourceType.None,
                                                  (current, part) => current
-                                                                    | (VerbosityLevel) Enum
-                                                                            .Parse(typeof(VerbosityLevel),
-                                                                                   part.Trim(),
-                                                                                   true));
+                                                                    | (ResourceType) Enum.Parse(typeof(ResourceType),
+                                                                                                part.Trim(),
+                                                                                                true));
                 Logger.Verbosity = VerbosityLevel;
             }
         }
 
-        public VerbosityLevel VerbosityLevel { get; private set; }
+        public ResourceType VerbosityLevel { get; private set; }
     }
 }

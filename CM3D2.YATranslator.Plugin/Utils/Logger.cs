@@ -6,16 +6,6 @@ using UnityInjector.ConsoleUtil;
 
 namespace CM3D2.YATranslator.Plugin.Utils
 {
-    [Flags]
-    public enum VerbosityLevel
-    {
-        None = 0,
-        Strings = 1 << 0,
-        Textures = 1 << 1,
-        Assets = 1 << 2,
-        All = Strings | Textures | Assets
-    }
-
     public enum DumpType
     {
         Strings = 0,
@@ -67,7 +57,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
             }
         }
 
-        public static VerbosityLevel Verbosity { get; set; }
+        public static ResourceType Verbosity { get; set; }
 
         public static bool CanDump(DumpType type) => AllowedDumpTypes.Contains(type);
 
@@ -134,18 +124,18 @@ namespace CM3D2.YATranslator.Plugin.Utils
             }
         }
 
-        public static void WriteLine(VerbosityLevel verbosity, LogLevel logLevel, string message)
+        public static void WriteLine(ResourceType verbosity, LogLevel logLevel, string message)
         {
             if (IsLoggingTo(verbosity))
                 WriteLine(logLevel, message);
         }
 
-        public static void WriteLine(VerbosityLevel verbosity, string message)
+        public static void WriteLine(ResourceType verbosity, string message)
         {
             WriteLine(verbosity, LogLevel.Normal, message);
         }
 
-        public static bool IsLoggingTo(VerbosityLevel verbosity) => (verbosity & Verbosity) != 0;
+        public static bool IsLoggingTo(ResourceType verbosity) => (verbosity & Verbosity) != 0;
 
         public static void WriteLine(LogLevel logLevel, string message)
         {
