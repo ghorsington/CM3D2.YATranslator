@@ -124,7 +124,8 @@ namespace CM3D2.YATranslator.Hook
         {
             StringTranslationEventArgs args = new StringTranslationEventArgs
             {
-                Text = label.text
+                Text = label.text,
+                Label = label
             };
 
             TranslateText?.Invoke(null, args);
