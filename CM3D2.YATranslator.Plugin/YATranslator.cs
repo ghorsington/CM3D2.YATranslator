@@ -250,7 +250,7 @@ namespace CM3D2.YATranslator.Plugin
             }
         }
 
-        public DumpType[] DumpTypes { get; private set; }
+        public DumpType[] DumpTypes { get; private set; } = new DumpType[0];
 
         public string Load
         {
@@ -267,7 +267,7 @@ namespace CM3D2.YATranslator.Plugin
             }
         }
 
-        public ResourceType LoadResourceTypes { get; private set; }
+        public ResourceType LoadResourceTypes { get; private set; } = ResourceType.All;
 
         public string Verbosity
         {
@@ -285,6 +285,6 @@ namespace CM3D2.YATranslator.Plugin
             }
         }
 
-        public ResourceType VerbosityLevel { get; private set; }
+        public ResourceType VerbosityLevel { get; private set; } = ResourceType.None;
     }
 }
