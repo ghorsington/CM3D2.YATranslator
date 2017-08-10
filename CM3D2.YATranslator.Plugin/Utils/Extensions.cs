@@ -1,10 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace CM3D2.YATranslator.Plugin.Utils
 {
     public static class Extensions
     {
+        public static T ParseEnum<T>(string value, bool ignoreCase = false)
+        {
+            return (T) Enum.Parse(typeof(T), value, ignoreCase);
+        }
+
         public static void AddIfNotPresent<TKey, TValue>(this IDictionary<TKey, TValue> self, TKey key, TValue value)
         {
             if (!self.ContainsKey(key))

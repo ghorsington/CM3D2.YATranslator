@@ -11,7 +11,8 @@ namespace CM3D2.YATranslator.Plugin.Utils
         Strings = 0,
         Textures = 1,
         Assets = 2,
-        TexSprites = 3
+        TexSprites = 3,
+        Voice = 4
     }
 
     public class LogLevel
@@ -35,7 +36,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
         private static HashSet<string> cachedDumps;
         private const string DUMP_FILENAME = "TRANSLATION_DUMP";
         private static bool dumpFileLoaded;
-        private static readonly string[] DumpFolderNames = {"Strings", "Textures", "Assets", "Textures_Sprites"};
+        private static readonly string[] DumpFolderNames = {"Strings", "Textures", "Assets", "Textures_Sprites", "Audio"};
         private static TextWriter dumpStream;
 
         static Logger()
@@ -67,7 +68,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
                 return false;
             if (dumpFileLoaded)
                 return true;
-
+            WriteLine("Trying to initialize dumping");
             try
             {
                 if (!Directory.Exists(DumpPath))
@@ -126,7 +127,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
 
         public static void WriteLine(ResourceType verbosity, LogLevel logLevel, string message)
         {
-            if (IsLoggingTo(verbosity))
+            if (IsLogging(verbosity))
                 WriteLine(logLevel, message);
         }
 
@@ -135,7 +136,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
             WriteLine(verbosity, LogLevel.Normal, message);
         }
 
-        public static bool IsLoggingTo(ResourceType verbosity) => (verbosity & Verbosity) != 0;
+        public static bool IsLogging(ResourceType verbosity) => (verbosity & Verbosity) != 0;
 
         public static void WriteLine(LogLevel logLevel, string message)
         {
@@ -197,6 +198,29 @@ namespace CM3D2.YATranslator.Plugin.Utils
             RenderTexture.active = previous;
             RenderTexture.ReleaseTemporary(render);
             return result;
+        }
+
+        public static void DumpVoice(string name, AudioClip clip)
+        {
+            if (!CanDump(DumpType.Voice) || clip == null || !InitDump())
+                return;
+
+            if (cachedDumps.Contains(name))
+                return;
+            cachedDumps.Add(name);
+
+            string path = Path.Combine(GetDumpFolderName(DumpType.Voice), $"{name}.wav");
+            if (File.Exists(path))
+                return;
+
+            WriteLine($"Translation::Dumping {name}.wav");
+
+            using (FileStream fs = File.Create(path))
+            {
+                byte[] wavData = clip.ToWavData();
+                fs.Write(wavData, 0, wavData.Length);
+                fs.Flush();
+            }
         }
     }
 }

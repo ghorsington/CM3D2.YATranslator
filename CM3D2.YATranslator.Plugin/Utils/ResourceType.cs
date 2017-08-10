@@ -9,6 +9,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
         Strings = 1 << 0,
         Textures = 1 << 1,
         Assets = 1 << 2,
-        All = Strings | Textures | Assets
+        Voices = 1 << 3,
+        All = Strings | Textures | Assets | Voices
     }
 }

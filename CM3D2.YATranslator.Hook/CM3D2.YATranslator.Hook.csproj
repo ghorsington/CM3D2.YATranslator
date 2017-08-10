@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GraphicTranslationEventArgs.cs" />
+    <Compile Include="SoundEventArgs.cs" />
     <Compile Include="StringTranslationEventArgs.cs" />
     <Compile Include="TextureTranslationEventArgs.cs" />
     <Compile Include="TranslationHooks.cs" />

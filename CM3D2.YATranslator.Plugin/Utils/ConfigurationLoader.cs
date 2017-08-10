@@ -6,6 +6,17 @@ using ExIni;
 
 namespace CM3D2.YATranslator.Plugin.Utils
 {
+    [AttributeUsage(AttributeTargets.Class)]
+    public class ConfigSectionAttribute : Attribute
+    {
+        public string Section { get; }
+
+        public ConfigSectionAttribute(string section)
+        {
+            Section = section;
+        }
+    }
+
     public class ConfigurationLoader
     {
         public static T LoadConfig<T>(IniFile ini) where T : new()
@@ -15,9 +26,32 @@ namespace CM3D2.YATranslator.Plugin.Utils
             return configObject;
         }
 
-        public static void LoadConfig<T>(T configObject, IniFile ini, string configSection)
+        private static bool TryInitSubsection(Type subsectionType, IniFile ini, out object subsection)
         {
-            Type configType = typeof(T);
+            subsection = null;
+            object[] sectionAttr = subsectionType.GetCustomAttributes(typeof(ConfigSectionAttribute), true);
+
+            if (sectionAttr.Length <= 0)
+                return false;
+            ConfigSectionAttribute attr = (ConfigSectionAttribute) sectionAttr[0];
+            if (string.IsNullOrEmpty(attr.Section))
+                return true;
+            try
+            {
+                subsection = Activator.CreateInstance(subsectionType);
+                LoadConfig(subsection, ini, attr.Section);
+            }
+            catch (Exception)
+            {
+                subsection = null;
+                return true;
+            }
+            return true;
+        }
+
+        public static void LoadConfig(object configObject, IniFile ini, string configSection)
+        {
+            Type configType = configObject.GetType();
 
             IEnumerable<FieldInfo> fields = configType.GetFields(BindingFlags.Public | BindingFlags.Instance)
                                                       .Where(f => !f.IsInitOnly);
@@ -29,6 +63,12 @@ namespace CM3D2.YATranslator.Plugin.Utils
 
             foreach (FieldInfo field in fields)
             {
+                if (TryInitSubsection(field.FieldType, ini, out object subsection))
+                {
+                    field.SetValue(configObject, subsection);
+                    continue;
+                }
+
                 string fieldName = field.Name;
                 string defaultValue = Convert.ToString(field.GetValue(configObject));
 
@@ -50,6 +90,12 @@ namespace CM3D2.YATranslator.Plugin.Utils
 
             foreach (PropertyInfo property in properties)
             {
+                if (TryInitSubsection(property.PropertyType, ini, out object subsection))
+                {
+                    property.SetValue(configObject, subsection, null);
+                    continue;
+                }
+
                 string propertyName = property.Name;
                 string defaultValue = Convert.ToString(property.GetValue(configObject, null));
 

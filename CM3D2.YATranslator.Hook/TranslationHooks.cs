@@ -14,6 +14,8 @@ namespace CM3D2.YATranslator.Hook
         public static event EventHandler<GraphicTranslationEventArgs> TranslateGraphic;
         public static event EventHandler<TextureTranslationEventArgs> SpriteLoad;
         public static event EventHandler<StringTranslationEventArgs> TranslateText;
+        public static event EventHandler<SoundEventArgs> PlaySound;
+
 
         public static void OnTranslateGraphic(MaskableGraphic graphic)
         {
@@ -23,6 +25,16 @@ namespace CM3D2.YATranslator.Hook
             };
 
             TranslateGraphic?.Invoke(null, args);
+        }
+
+        public static void OnPlaySound(AudioSourceMgr mgr)
+        {
+            SoundEventArgs args = new SoundEventArgs
+            {
+                AudioSourceMgr = mgr
+            };
+
+            PlaySound?.Invoke(null, args);
         }
 
         public static void OnTranslateSprite(ref Sprite sprite)

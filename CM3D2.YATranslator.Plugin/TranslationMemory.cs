@@ -80,9 +80,10 @@ namespace CM3D2.YATranslator.Plugin
             Logger.WriteLine($"Translation::CacheAssets::Cached '{cachedAssetPaths.Count}' Assets");
         }
 
-        public void ActivateLevelTranslations(int level)
+        public void ActivateLevelTranslations(int level, bool clearTranslatedCache = true)
         {
-            translatedStrings.Clear();
+            if(clearTranslatedCache)
+                translatedStrings.Clear();
             ActivateStringTranslations(level);
         }
 
@@ -117,7 +118,7 @@ namespace CM3D2.YATranslator.Plugin
                 if (regexTranslation.Key.IsMatch(original))
                     return Translate(regexTranslation.Key.Replace(original, regexTranslation.Value));
 
-            return null;
+            return RetranslateText ? original : null;
         }
 
         public bool WasTranslated(string translation) => translatedStrings.ContainsKey(translation);
@@ -206,7 +207,7 @@ namespace CM3D2.YATranslator.Plugin
                     translationLevels = levelList.Distinct().ToArray();
                 }
 
-                if (Logger.IsLoggingTo(ResourceType.Strings))
+                if (Logger.IsLogging(ResourceType.Strings))
                 {
                     string levels = translationLevels.Length > 0
                                         ? string.Join(",", translationLevels.Select(i => i.ToString()).ToArray())

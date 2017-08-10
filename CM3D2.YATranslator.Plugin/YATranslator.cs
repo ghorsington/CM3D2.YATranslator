@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using CM3D2.YATranslator.Hook;
 using CM3D2.YATranslator.Plugin.Utils;
@@ -28,7 +28,15 @@ namespace CM3D2.YATranslator.Plugin
 
         private int CurrentLevel { get; set; }
 
+        private Coroutine CurrentSubtitleAudioTracker { get; set; }
+
         private TranslationMemory Memory { get; set; }
+
+        private Text SubtitleText { get; set; }
+
+        private Outline TextOutline { get; set; }
+
+        private GameObject TranslationCanvas { get; set; }
 
         public void Awake()
         {
@@ -50,7 +58,13 @@ namespace CM3D2.YATranslator.Plugin
             TranslationHooks.SpriteLoad += OnTextureLoad;
             TranslationHooks.ArcTextureLoaded += OnArcTextureLoaded;
             TranslationHooks.TranslateGraphic += OnTranslateGraphic;
+            TranslationHooks.PlaySound += OnPlaySound;
             Logger.WriteLine("Translation::Hooking complete");
+        }
+
+        public void Start()
+        {
+            CreateSubtitleOverlay();
         }
 
         public void OnLevelWasLoaded(int level)
@@ -67,11 +81,12 @@ namespace CM3D2.YATranslator.Plugin
                 Logger.WriteLine("Reloading config");
                 ReloadConfig();
                 InitConfig();
+                InitText();
                 if (Settings.EnableStringReload)
                 {
                     Logger.WriteLine("Reloading translations");
                     Memory.LoadTranslations();
-                    Memory.ActivateLevelTranslations(CurrentLevel);
+                    Memory.ActivateLevelTranslations(CurrentLevel, false);
 
                     TranslateExisting();
                 }
@@ -87,8 +102,90 @@ namespace CM3D2.YATranslator.Plugin
             TranslationHooks.ArcTextureLoaded -= OnArcTextureLoaded;
             TranslationHooks.SpriteLoad -= OnTextureLoad;
             TranslationHooks.TranslateGraphic -= OnTranslateGraphic;
+            TranslationHooks.PlaySound -= OnPlaySound;
 
             Logger.Dispose();
+        }
+
+        private void OnPlaySound(object sender, SoundEventArgs e)
+        {
+            if (!Settings.Subtitles.Enable || e.AudioSourceMgr.SoundType != AudioSourceMgr.Type.Voice)
+                return;
+
+            Logger.WriteLine(ResourceType.Voices, $"Translation::Voice {e.AudioSourceMgr.FileName}");
+
+            if (CurrentSubtitleAudioTracker != null)
+                StopCoroutine(CurrentSubtitleAudioTracker);
+
+            string soundName = Path.GetFileNameWithoutExtension(e.AudioSourceMgr.FileName);
+            SubtitleText.text = soundName;
+
+            bool hideUntranslated = !Logger.IsLogging(ResourceType.Voices);
+
+            if (SubtitleText.text == soundName)
+            {
+                if (hideUntranslated)
+                    SubtitleText.text = string.Empty;
+
+                Logger.DumpVoice(soundName, e.AudioSourceMgr.audiosource.clip);
+            }
+
+            IEnumerator TrackSubtitleAudio(AudioSource audio)
+            {
+                yield return null;
+                while (audio.isPlaying)
+                    yield return new WaitForSeconds(0.1f);
+
+                SubtitleText.text = string.Empty;
+                CurrentSubtitleAudioTracker = null;
+            }
+
+            if(hideUntranslated)
+                CurrentSubtitleAudioTracker = StartCoroutine(TrackSubtitleAudio(e.AudioSourceMgr.audiosource));
+        }
+
+        private void CreateSubtitleOverlay()
+        {
+            TranslationCanvas = new GameObject
+            {
+                name = "TranslationCanvas"
+            };
+            GameObject panel = new GameObject("Panel");
+            DontDestroyOnLoad(TranslationCanvas);
+            DontDestroyOnLoad(panel);
+
+            panel.transform.parent = TranslationCanvas.transform;
+
+            Canvas canvas = TranslationCanvas.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
+            RectTransform rect = panel.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(0f, 0f);
+            rect.anchorMin = new Vector2(0f, 0f);
+            rect.anchorMax = new Vector2(1f, 1f);
+
+            TextOutline = panel.AddComponent<Outline>();
+
+            SubtitleText = panel.AddComponent<Text>();
+            SubtitleText.transform.SetParent(panel.transform, false);
+            Font myFont = (Font) Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
+            SubtitleText.font = myFont;
+            SubtitleText.material = myFont.material;
+            SubtitleText.text = string.Empty;
+            InitText();
+        }
+
+        private void InitText()
+        {
+            TextOutline.enabled = Settings.Subtitles.Outline;
+            TextOutline.effectDistance = new Vector2(Settings.Subtitles.OutlineThickness, Settings.Subtitles.OutlineThickness);
+            TextOutline.effectColor = Settings.Subtitles.OutlineColor;
+
+            SubtitleText.fontSize = Settings.Subtitles.FontSize;
+            SubtitleText.fontStyle = Settings.Subtitles.Style;
+            SubtitleText.material.color = Settings.Subtitles.Color;
+            SubtitleText.alignment = Settings.Subtitles.Alignment;
+            SubtitleText.rectTransform.anchoredPosition = Settings.Subtitles.Offset;
         }
 
         private void InitConfig()
@@ -231,60 +328,5 @@ namespace CM3D2.YATranslator.Plugin
                 TranslationHooks.OnTranslateGraphic(graphic);
             }
         }
-    }
-
-    public class PluginConfiguration
-    {
-        public bool EnableStringReload = false;
-
-        public string Dump
-        {
-            get => "None";
-
-            set
-            {
-                string[] parts = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
-
-                DumpTypes = parts.Select(str => (DumpType) Enum.Parse(typeof(DumpType), str.Trim(), true)).ToArray();
-                Logger.DumpTypes = DumpTypes;
-            }
-        }
-
-        public DumpType[] DumpTypes { get; private set; } = new DumpType[0];
-
-        public string Load
-        {
-            get => ResourceType.All.ToString();
-
-            set
-            {
-                string[] parts = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
-                LoadResourceTypes = parts.Aggregate(ResourceType.None,
-                                                    (current, part) => current
-                                                                       | (ResourceType) Enum.Parse(typeof(ResourceType),
-                                                                                                   part.Trim(),
-                                                                                                   true));
-            }
-        }
-
-        public ResourceType LoadResourceTypes { get; private set; } = ResourceType.All;
-
-        public string Verbosity
-        {
-            get => ResourceType.None.ToString();
-
-            set
-            {
-                string[] parts = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
-                VerbosityLevel = parts.Aggregate(ResourceType.None,
-                                                 (current, part) => current
-                                                                    | (ResourceType) Enum.Parse(typeof(ResourceType),
-                                                                                                part.Trim(),
-                                                                                                true));
-                Logger.Verbosity = VerbosityLevel;
-            }
-        }
-
-        public ResourceType VerbosityLevel { get; private set; } = ResourceType.None;
     }
 }
