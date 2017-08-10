@@ -64,6 +64,7 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
             TypeDefinition scheduleApi = assembly.MainModule.GetType("Schedule.ScheduleAPI");
             TypeDefinition freeSceneUi = assembly.MainModule.GetType("FreeScene_UI");
             TypeDefinition trophyUi = assembly.MainModule.GetType("Trophy_UI");
+            TypeDefinition audioSrcMgr = assembly.MainModule.GetType("AudioSourceMgr");
 
             MethodDefinition infoReplace = scheduleApi.GetMethod("InfoReplace");
             MethodDefinition onTranslateInfoText = hookType.GetMethod("OnTranslateInfoText");
@@ -104,6 +105,10 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
 
             MethodDefinition trophyStart = trophyUi.GetMethod("Trophy_Start");
             trophyStart.InjectWith(onTranslateConstText, flags: InjectFlags.PassParametersRef);
+
+            MethodDefinition loadPlay = audioSrcMgr.GetMethod("Play");
+            MethodDefinition onLoadSound = hookType.GetMethod("OnPlaySound");
+            loadPlay.InjectWith(onLoadSound, flags: InjectFlags.PassInvokingInstance);
         }
 
         private static void HookOnTextureLoaded(AssemblyDefinition assembly, MethodReference textureLoadedHook)
