@@ -97,8 +97,9 @@ namespace CM3D2.YATranslator.Plugin
             }
 
             bool wasTranslated = translatedStrings.ContainsKey(original);
+            string untranslated = original;
             if (RetranslateText)
-                original = wasTranslated ? translatedStrings[original] : original;
+                untranslated = wasTranslated ? translatedStrings[untranslated] : untranslated;
             else if (wasTranslated)
             {
                 Logger.WriteLine(ResourceType.Strings,
@@ -106,19 +107,19 @@ namespace CM3D2.YATranslator.Plugin
                                  $"Translation::String::Skip {original} (is already translated)");
                 return null;
             }
-            original = original.Replace("\n", "").Trim();
+            untranslated = untranslated.Replace("\n", "").Trim();
 
-            if (string.IsNullOrEmpty(original))
+            if (string.IsNullOrEmpty(untranslated))
                 return null;
 
-            if (activeStringTranslations.TryGetValue(original, out string translation))
+            if (activeStringTranslations.TryGetValue(untranslated, out string translation))
                 return Translate(translation);
 
             foreach (KeyValuePair<Regex, string> regexTranslation in activeRegexTranslations)
-                if (regexTranslation.Key.IsMatch(original))
-                    return Translate(regexTranslation.Key.Replace(original, regexTranslation.Value));
+                if (regexTranslation.Key.IsMatch(untranslated))
+                    return Translate(regexTranslation.Key.Replace(untranslated, regexTranslation.Value));
 
-            return RetranslateText ? original : null;
+            return null;
         }
 
         public bool WasTranslated(string translation) => translatedStrings.ContainsKey(translation);

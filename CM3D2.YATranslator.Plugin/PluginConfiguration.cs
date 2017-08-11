@@ -7,39 +7,44 @@ using Logger = CM3D2.YATranslator.Plugin.Utils.Logger;
 
 namespace CM3D2.YATranslator.Plugin
 {
+    [ConfigSection("Clipboard")]
+    public class ClipboardConfiguration
+    {
+        public bool Enable = false;
+        public float WaitTime = 0.5f;
+        public int[] AllowedLevels { get; internal set; } = {-1};
+
+        public string Levels
+        {
+            get => "-1";
+
+            set => AllowedLevels = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(int.Parse)
+                                        .ToArray();
+        }
+    }
+
+
     [ConfigSection("Subtitles")]
     public class SubtitleConfiguration
     {
-        public static readonly Regex RgbaPattern = new Regex(@"RGBA\(\s*(?<r>\d\.\d+)\s*,\s*(?<g>\d\.\d+)\s*,\s*(?<b>\d\.\d+)\s*,\s*(?<a>\d\.\d+)\s*\)");
-        public static readonly Regex Vec2Pattern = new Regex(@"\(\s*(?<x>-?\d+\.\d+)\s*,\s*(?<y>-?\d+\.\d+)\s*\)");
+        private static readonly Regex RgbaPattern =
+                new Regex(@"RGBA\(\s*(?<r>\d\.\d+)\s*,\s*(?<g>\d\.\d+)\s*,\s*(?<b>\d\.\d+)\s*,\s*(?<a>\d\.\d+)\s*\)");
+
+        private static readonly Regex Vec2Pattern = new Regex(@"\(\s*(?<x>-?\d+\.\d+)\s*,\s*(?<y>-?\d+\.\d+)\s*\)");
 
         public bool Enable = true;
-        public bool Outline = true;
         public int FontSize = 20;
+        public bool HideWhenClipStops = true;
+        public bool Outline = true;
         public float OutlineThickness = 1.0f;
-        public FontStyle Style { get; private set; } = UnityEngine.FontStyle.Bold;
-        public Color Color { get; private set; } = Color.white;
-        public Color OutlineColor { get; private set; } = Color.black;
         public TextAnchor Alignment { get; private set; } = TextAnchor.UpperCenter;
-        public Vector2 Offset { get; private set; } = Vector2.zero;
-
-        public string TextOutlineColor
-        {
-            get => OutlineColor.ToString();
-            set => OutlineColor = ParseColor(value);
-        }
+        public Color Color { get; private set; } = Color.white;
 
         public string FontColor
         {
             get => Color.ToString();
             set => Color = ParseColor(value);
-        }
-
-        public string TextAlignment
-        {
-            get => Alignment.ToString();
-
-            set => Alignment = Extensions.ParseEnum<TextAnchor>(value, true);
         }
 
         public string FontStyle
@@ -49,12 +54,31 @@ namespace CM3D2.YATranslator.Plugin
             set => Style = Extensions.ParseEnum<FontStyle>(value, true);
         }
 
+        public Vector2 Offset { get; private set; } = Vector2.zero;
+        public Color OutlineColor { get; private set; } = Color.black;
+        public FontStyle Style { get; private set; } = UnityEngine.FontStyle.Bold;
+
+        public string TextAlignment
+        {
+            get => Alignment.ToString();
+
+            set => Alignment = Extensions.ParseEnum<TextAnchor>(value, true);
+        }
+
         public string TextOffset
         {
             get => Offset.ToString();
 
             set => Offset = ParseVec2(value);
-    }
+        }
+
+        public string TextOutlineColor
+        {
+            get => OutlineColor.ToString();
+            set => OutlineColor = ParseColor(value);
+        }
+
+        public bool ShowUntranslatedText = false;
 
         private static Vector2 ParseVec2(string value)
         {
@@ -84,9 +108,8 @@ namespace CM3D2.YATranslator.Plugin
     [ConfigSection("Config")]
     public class PluginConfiguration
     {
-        public SubtitleConfiguration Subtitles { get; set; } = new SubtitleConfiguration();
-
         public bool EnableStringReload = false;
+        public ClipboardConfiguration Clipboard { get; set; } = new ClipboardConfiguration();
 
         public string Dump
         {
@@ -119,6 +142,7 @@ namespace CM3D2.YATranslator.Plugin
         }
 
         public ResourceType LoadResourceTypes { get; private set; } = ResourceType.All;
+        public SubtitleConfiguration Subtitles { get; set; } = new SubtitleConfiguration();
 
         public string Verbosity
         {
