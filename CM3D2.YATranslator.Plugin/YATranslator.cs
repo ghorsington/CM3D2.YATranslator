@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -26,11 +25,11 @@ namespace CM3D2.YATranslator.Plugin
 
         public PluginConfiguration Settings { get; private set; }
 
+        private Clipboard Clipboard { get; set; }
+
         private int CurrentLevel { get; set; }
 
         private TranslationMemory Memory { get; set; }
-
-        private Clipboard Clipboard { get; set; }
 
         private Subtitles Subtitles { get; set; }
 
@@ -197,13 +196,24 @@ namespace CM3D2.YATranslator.Plugin
 
             Logger.WriteLine(ResourceType.Strings, LogLevel.Minor, $"Translation::FindString::{inputText}");
 
+            bool isAudioClipName = inputText.StartsWith(Subtitles.AUDIOCLIP_PREFIX);
+            if (isAudioClipName)
+                inputText = inputText.Substring(Subtitles.AUDIOCLIP_PREFIX.Length);
+
             e.Translation = Memory.GetTextTranslation(inputText);
 
-            if (!Memory.WasTranslated(e.Translation ?? inputText))
+            if (Memory.WasTranslated(e.Translation ?? inputText))
+                return;
+
+            if (isAudioClipName && e.Translation == null)
+                e.Translation = inputText;
+            if (!isAudioClipName)
             {
                 Clipboard.AddText(inputText, CurrentLevel);
                 Logger.DumpLine($"[STRING][LEVEL {CurrentLevel}] {inputText}");
             }
+            else
+                Logger.DumpLine($"[VOICE][LEVEL {CurrentLevel}] {inputText}", DumpType.Voice);
         }
 
         private void OnTextureLoad(object sender, TextureTranslationEventArgs e)

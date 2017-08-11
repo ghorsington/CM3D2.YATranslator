@@ -111,9 +111,9 @@ namespace CM3D2.YATranslator.Plugin.Utils
             dumpStream.Dispose();
         }
 
-        public static void DumpLine(string line)
+        public static void DumpLine(string line, DumpType dumpType = DumpType.Strings)
         {
-            if (!CanDump(DumpType.Strings) || !InitDump())
+            if (!CanDump(dumpType) || !InitDump())
                 return;
             if (cachedDumps.Contains(line))
                 return;

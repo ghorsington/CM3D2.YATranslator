@@ -10,6 +10,8 @@ namespace CM3D2.YATranslator.Plugin
 {
     public class Subtitles : MonoBehaviour
     {
+        public const string AUDIOCLIP_PREFIX = "#";
+
         private Text subtitleText;
         private Outline outline;
         private GameObject translationCanvas;
@@ -91,7 +93,7 @@ namespace CM3D2.YATranslator.Plugin
                 StopCoroutine(currentAudioTracker);
 
             string soundName = Path.GetFileNameWithoutExtension(mgr.FileName);
-            subtitleText.text = soundName;
+            subtitleText.text = AUDIOCLIP_PREFIX + soundName;
 
             if (subtitleText.text == soundName)
             {
