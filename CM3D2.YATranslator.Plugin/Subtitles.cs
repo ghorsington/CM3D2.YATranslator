@@ -104,7 +104,7 @@ namespace CM3D2.YATranslator.Plugin
             IEnumerator TrackSubtitleAudio(AudioSource audio)
             {
                 yield return null;
-                while (audio.isPlaying)
+                while (audio != null && audio.isPlaying)
                     yield return new WaitForSeconds(0.1f);
 
                 subtitleText.text = string.Empty;
