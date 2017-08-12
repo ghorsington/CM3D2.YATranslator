@@ -9,12 +9,12 @@ namespace CM3D2.YATranslator.Plugin.Utils
     [AttributeUsage(AttributeTargets.Class)]
     public class ConfigSectionAttribute : Attribute
     {
-        public string Section { get; }
-
         public ConfigSectionAttribute(string section)
         {
             Section = section;
         }
+
+        public string Section { get; }
     }
 
     public class ConfigurationLoader
@@ -24,29 +24,6 @@ namespace CM3D2.YATranslator.Plugin.Utils
             T configObject = new T();
             LoadConfig(configObject, ini, "Config");
             return configObject;
-        }
-
-        private static bool TryInitSubsection(Type subsectionType, IniFile ini, out object subsection)
-        {
-            subsection = null;
-            object[] sectionAttr = subsectionType.GetCustomAttributes(typeof(ConfigSectionAttribute), true);
-
-            if (sectionAttr.Length <= 0)
-                return false;
-            ConfigSectionAttribute attr = (ConfigSectionAttribute) sectionAttr[0];
-            if (string.IsNullOrEmpty(attr.Section))
-                return true;
-            try
-            {
-                subsection = Activator.CreateInstance(subsectionType);
-                LoadConfig(subsection, ini, attr.Section);
-            }
-            catch (Exception)
-            {
-                subsection = null;
-                return true;
-            }
-            return true;
         }
 
         public static void LoadConfig(object configObject, IniFile ini, string configSection)
@@ -116,6 +93,29 @@ namespace CM3D2.YATranslator.Plugin.Utils
                     section[propertyName].Value = defaultValue;
                 }
             }
+        }
+
+        private static bool TryInitSubsection(Type subsectionType, IniFile ini, out object subsection)
+        {
+            subsection = null;
+            object[] sectionAttr = subsectionType.GetCustomAttributes(typeof(ConfigSectionAttribute), true);
+
+            if (sectionAttr.Length <= 0)
+                return false;
+            ConfigSectionAttribute attr = (ConfigSectionAttribute) sectionAttr[0];
+            if (string.IsNullOrEmpty(attr.Section))
+                return true;
+            try
+            {
+                subsection = Activator.CreateInstance(subsectionType);
+                LoadConfig(subsection, ini, attr.Section);
+            }
+            catch (Exception)
+            {
+                subsection = null;
+                return true;
+            }
+            return true;
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using CM3D2.YATranslator.Hook;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Inject;
@@ -35,27 +36,31 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
 
         private static void PatchUi(AssemblyDefinition hookAssembly, AssemblyDefinition assembly)
         {
-            TypeDefinition hookType = hookAssembly.MainModule.GetType($"{HOOK_NAME}.TranslationHooks");
+            TypeDefinition hookType = hookAssembly.MainModule.GetType($"{HOOK_NAME}.{nameof(TranslationHooks)}");
             TypeDefinition text = assembly.MainModule.GetType("UnityEngine.UI.Text");
             TypeDefinition image = assembly.MainModule.GetType("UnityEngine.UI.Image");
             TypeDefinition maskableGraphic = assembly.MainModule.GetType("UnityEngine.UI.MaskableGraphic");
 
             MethodDefinition textSetter = text.GetMethod("set_text");
-            MethodDefinition onTranslateConstText = hookType.GetMethod("OnTranslateConstText");
-            textSetter.InjectWith(onTranslateConstText, flags: InjectFlags.PassParametersRef);
+            MethodDefinition onTranslateUiText = hookType.GetMethod(nameof(TranslationHooks.OnTranslateUiText));
+            textSetter.InjectWith(onTranslateUiText,
+                                  tag: (int) StringType.Text,
+                                  flags: InjectFlags.PassParametersRef
+                                         | InjectFlags.PassInvokingInstance
+                                         | InjectFlags.PassTag);
 
             MethodDefinition setSprite = image.GetMethod("set_sprite");
-            MethodDefinition onTranslateSprite = hookType.GetMethod("OnTranslateSprite");
+            MethodDefinition onTranslateSprite = hookType.GetMethod(nameof(TranslationHooks.OnTranslateSprite));
             setSprite.InjectWith(onTranslateSprite, flags: InjectFlags.PassParametersRef);
 
             MethodDefinition onEnable = maskableGraphic.GetMethod("OnEnable");
-            MethodDefinition onTranslateGraphic = hookType.GetMethod("OnTranslateGraphic");
+            MethodDefinition onTranslateGraphic = hookType.GetMethod(nameof(TranslationHooks.OnTranslateGraphic));
             onEnable.InjectWith(onTranslateGraphic, flags: InjectFlags.PassInvokingInstance);
         }
 
         private static void PatchAssemblyCSharp(AssemblyDefinition hookAssembly, AssemblyDefinition assembly)
         {
-            TypeDefinition hookType = hookAssembly.MainModule.GetType($"{HOOK_NAME}.TranslationHooks");
+            TypeDefinition hookType = hookAssembly.MainModule.GetType($"{HOOK_NAME}.{nameof(TranslationHooks)}");
 
             TypeDefinition importCm = assembly.MainModule.GetType("ImportCM");
             TypeDefinition uiWidget = assembly.MainModule.GetType("UIWidget");
@@ -67,29 +72,36 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
             TypeDefinition audioSrcMgr = assembly.MainModule.GetType("AudioSourceMgr");
 
             MethodDefinition infoReplace = scheduleApi.GetMethod("InfoReplace");
-            MethodDefinition onTranslateInfoText = hookType.GetMethod("OnTranslateInfoText");
-            infoReplace.InjectWith(onTranslateInfoText, flags: InjectFlags.PassParametersRef);
+            MethodDefinition onTranslateInfoText = hookType.GetMethod(nameof(TranslationHooks.OnTranslateInfoText));
+            infoReplace.InjectWith(onTranslateInfoText,
+                                   tag: (int) StringType.Template,
+                                   flags: InjectFlags.PassParametersRef | InjectFlags.PassTag);
 
             MethodDefinition replaceCharaName = scriptManager.GetMethod("ReplaceCharaName", "System.String");
-            MethodDefinition onTranslateConstText = hookType.GetMethod("OnTranslateConstText");
-            replaceCharaName.InjectWith(onTranslateConstText, flags: InjectFlags.PassParametersRef);
+            MethodDefinition onTranslateConstText = hookType.GetMethod(nameof(TranslationHooks.OnTranslateConstText));
+            replaceCharaName.InjectWith(onTranslateConstText,
+                                        tag: (int) StringType.Template,
+                                        flags: InjectFlags.PassParametersRef | InjectFlags.PassTag);
 
             MethodDefinition loadTextureTarget = importCm.GetMethod("LoadTexture");
-            MethodDefinition onArcTextureLoadHook = hookType.GetMethod("OnArcTextureLoad");
-            MethodDefinition onArcTextureLoadedHook = hookType.GetMethod("OnArcTextureLoaded");
+            MethodDefinition onArcTextureLoadHook = hookType.GetMethod(nameof(TranslationHooks.OnArcTextureLoad));
+            MethodDefinition onArcTextureLoadedHook = hookType.GetMethod(nameof(TranslationHooks.OnArcTextureLoaded));
             loadTextureTarget.InjectWith(onArcTextureLoadHook,
                                          flags: InjectFlags.PassParametersVal | InjectFlags.ModifyReturn);
             HookOnTextureLoaded(assembly, onArcTextureLoadedHook);
 
-            MethodDefinition onTranslateTextHook = hookType.GetMethod("OnTranslateText");
+            MethodDefinition onTranslateTextHook = hookType.GetMethod(nameof(TranslationHooks.OnTranslateText));
             MethodDefinition processAndRequestTarget = uiLabel.GetMethod("ProcessAndRequest");
             processAndRequestTarget.InjectWith(onTranslateTextHook,
-                                               flags: InjectFlags.PassInvokingInstance | InjectFlags.PassFields,
+                                               tag: (int) StringType.UiLabel,
+                                               flags: InjectFlags.PassInvokingInstance
+                                                      | InjectFlags.PassFields
+                                                      | InjectFlags.PassTag,
                                                typeFields: new[] {uiLabel.GetField("mText")});
             processAndRequestTarget.IsPublic = true;
             processAndRequestTarget.IsPrivate = false;
 
-            MethodDefinition onAssetTextureLoadHook = hookType.GetMethod("OnAssetTextureLoad");
+            MethodDefinition onAssetTextureLoadHook = hookType.GetMethod(nameof(TranslationHooks.OnAssetTextureLoad));
             MethodDefinition getMainTextureTarget = uiWidget.GetMethod("get_mainTexture");
             getMainTextureTarget.InjectWith(onAssetTextureLoadHook,
                                             tag: 0,
@@ -101,13 +113,17 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
                                    flags: InjectFlags.PassInvokingInstance | InjectFlags.PassTag);
 
             MethodDefinition freeSceneStart = freeSceneUi.GetMethod("FreeScene_Start");
-            freeSceneStart.InjectWith(onTranslateConstText, flags: InjectFlags.PassParametersRef);
+            freeSceneStart.InjectWith(onTranslateConstText,
+                                      tag: (int) StringType.Const,
+                                      flags: InjectFlags.PassParametersRef | InjectFlags.PassTag);
 
             MethodDefinition trophyStart = trophyUi.GetMethod("Trophy_Start");
-            trophyStart.InjectWith(onTranslateConstText, flags: InjectFlags.PassParametersRef);
+            trophyStart.InjectWith(onTranslateConstText,
+                                   tag: (int) StringType.Const,
+                                   flags: InjectFlags.PassParametersRef | InjectFlags.PassTag);
 
             MethodDefinition loadPlay = audioSrcMgr.GetMethod("Play");
-            MethodDefinition onLoadSound = hookType.GetMethod("OnPlaySound");
+            MethodDefinition onLoadSound = hookType.GetMethod(nameof(TranslationHooks.OnPlaySound));
             loadPlay.InjectWith(onLoadSound, flags: InjectFlags.PassInvokingInstance);
         }
 

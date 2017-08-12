@@ -56,6 +56,7 @@
     <Compile Include="Subtitles.cs" />
     <Compile Include="TranslationMemory.cs" />
     <Compile Include="Utils\ConfigurationLoader.cs" />
+    <Compile Include="Utils\ManagedCoroutine.cs" />
     <Compile Include="Utils\Extensions.cs" />
     <Compile Include="Utils\Logger.cs" />
     <Compile Include="Utils\ResourceType.cs" />

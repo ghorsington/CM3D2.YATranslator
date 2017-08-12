@@ -62,9 +62,9 @@ namespace CM3D2.YATranslator.Hook
             sprite = newSprite;
         }
 
-        public static void OnTranslateInfoText(ref int nightWorkId, ref string info)
+        public static void OnTranslateInfoText(int tag, ref int nightWorkId, ref string info)
         {
-            OnTranslateConstText(ref info);
+            OnTranslateConstText(tag, ref info);
         }
 
         public static TextureResource OnArcTextureLoaded(TextureResource resource, string name)
@@ -79,11 +79,27 @@ namespace CM3D2.YATranslator.Hook
             return resource;
         }
 
-        public static void OnTranslateConstText(ref string text)
+        public static void OnTranslateUiText(int tag, Text uiText, ref string text)
         {
             StringTranslationEventArgs args = new StringTranslationEventArgs
             {
-                Text = text
+                Text = text,
+                TextContainer = uiText,
+                Type = (StringType) tag
+            };
+
+            TranslateText?.Invoke(null, args);
+
+            if (!string.IsNullOrEmpty(args.Translation))
+                text = args.Translation;
+        }
+
+        public static void OnTranslateConstText(int tag, ref string text)
+        {
+            StringTranslationEventArgs args = new StringTranslationEventArgs
+            {
+                Text = text,
+                Type = (StringType) tag
             };
 
             TranslateText?.Invoke(null, args);
@@ -132,12 +148,13 @@ namespace CM3D2.YATranslator.Hook
             texture2D.LoadImage(args.Data.data);
         }
 
-        public static void OnTranslateText(UILabel label, ref string text)
+        public static void OnTranslateText(int tag, UILabel label, ref string text)
         {
             StringTranslationEventArgs args = new StringTranslationEventArgs
             {
                 Text = label.text,
-                Label = label
+                TextContainer = label,
+                Type = (StringType) tag
             };
 
             TranslateText?.Invoke(null, args);

@@ -45,6 +45,7 @@
     <Compile Include="GraphicTranslationEventArgs.cs" />
     <Compile Include="SoundEventArgs.cs" />
     <Compile Include="StringTranslationEventArgs.cs" />
+    <Compile Include="StringType.cs" />
     <Compile Include="TextureTranslationEventArgs.cs" />
     <Compile Include="TranslationHooks.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

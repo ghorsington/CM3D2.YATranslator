@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using CM3D2.YATranslator.Plugin.Utils;
 using UnityEngine;
 using Logger = CM3D2.YATranslator.Plugin.Utils.Logger;
 using WindowsClipboard = System.Windows.Forms.Clipboard;
@@ -15,8 +16,8 @@ namespace CM3D2.YATranslator.Plugin
 
         private bool allowAll;
         private float currWaitTime;
-        private bool isSendingToClipboard;
         private float maxWaitTime = 0.5f;
+        private ManagedCoroutine sendToClipboard = ManagedCoroutine.NoRoutine;
 
         public Clipboard()
         {
@@ -49,8 +50,8 @@ namespace CM3D2.YATranslator.Plugin
             clipboardStrings.Add(str);
             clipboardContents.Append($"{str}.");
             currWaitTime = 0.0f;
-            if (!isSendingToClipboard)
-                StartCoroutine(SendToClipboard());
+            if (!sendToClipboard.IsRunning)
+                sendToClipboard = this.StartManagedCoroutine(SendToClipboard());
         }
 
         private void InitConfig(ClipboardConfiguration config)
@@ -78,7 +79,6 @@ namespace CM3D2.YATranslator.Plugin
 
         private IEnumerator SendToClipboard()
         {
-            isSendingToClipboard = true;
             while (currWaitTime < maxWaitTime)
             {
                 yield return new WaitForSeconds(maxWaitTime);
@@ -89,7 +89,6 @@ namespace CM3D2.YATranslator.Plugin
             clipboardContents.Length = 0;
             clipboardContents.Capacity = 256;
             currWaitTime = 0.0f;
-            isSendingToClipboard = false;
         }
     }
 }

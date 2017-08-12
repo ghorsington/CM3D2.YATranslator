@@ -39,8 +39,9 @@ namespace CM3D2.YATranslator.Plugin
             cachedTexturePaths = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
         }
 
-        public bool RetranslateText { get; set; }
         public ResourceType LoadResource { get; set; }
+
+        public bool RetranslateText { get; set; }
 
         public string TranslationsPath
         {
@@ -53,8 +54,6 @@ namespace CM3D2.YATranslator.Plugin
                 texturesPath = Path.Combine(translationsPath, TEXTURES_FOLDER);
             }
         }
-
-        private bool CanLoadResouce(ResourceType resourceType) => (resourceType & LoadResource) != 0;
 
         public void LoadTranslations()
         {
@@ -82,7 +81,7 @@ namespace CM3D2.YATranslator.Plugin
 
         public void ActivateLevelTranslations(int level, bool clearTranslatedCache = true)
         {
-            if(clearTranslatedCache)
+            if (clearTranslatedCache)
                 translatedStrings.Clear();
             ActivateStringTranslations(level);
         }
@@ -109,6 +108,8 @@ namespace CM3D2.YATranslator.Plugin
             }
             untranslated = untranslated.Replace("\n", "").Trim();
 
+            Logger.WriteLine(ResourceType.Strings, LogLevel.Minor, $"Translation::FindString::{untranslated}");
+
             if (string.IsNullOrEmpty(untranslated))
                 return null;
 
@@ -129,6 +130,8 @@ namespace CM3D2.YATranslator.Plugin
                                                          : null;
 
         public string GetAssetPath(string name) => cachedAssetPaths.TryGetValue(name, out string path) ? path : null;
+
+        private bool CanLoadResouce(ResourceType resourceType) => (resourceType & LoadResource) != 0;
 
         private void CheckDirectories()
         {
@@ -184,7 +187,8 @@ namespace CM3D2.YATranslator.Plugin
                     activeStringTranslations.AddIfNotPresent(current.ConstTranslation, current.TargetTranslation);
             }
 
-            Logger.WriteLine($"Translation::CacheString::Cached '{activeStringTranslations.Count}' Strings and '{activeRegexTranslations.Count}' Regexes for Level '{level}'");
+            Logger
+                    .WriteLine($"Translation::CacheString::Cached '{activeStringTranslations.Count}' Strings and '{activeRegexTranslations.Count}' Regexes for Level '{level}'");
         }
 
         private void LoadStringTranslations()

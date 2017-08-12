@@ -36,7 +36,16 @@ namespace CM3D2.YATranslator.Plugin.Utils
         private static HashSet<string> cachedDumps;
         private const string DUMP_FILENAME = "TRANSLATION_DUMP";
         private static bool dumpFileLoaded;
-        private static readonly string[] DumpFolderNames = {"Strings", "Textures", "Assets", "Textures_Sprites", "Audio"};
+
+        private static readonly string[] DumpFolderNames =
+        {
+            "Strings",
+            "Textures",
+            "Assets",
+            "Textures_Sprites",
+            "Audio"
+        };
+
         private static TextWriter dumpStream;
 
         static Logger()
@@ -111,7 +120,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
             dumpStream.Dispose();
         }
 
-        public static void DumpLine(string line, DumpType dumpType = DumpType.Strings)
+        public static void DumpLine(string line, int level, DumpType dumpType = DumpType.Strings)
         {
             if (!CanDump(dumpType) || !InitDump())
                 return;
@@ -120,7 +129,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
             cachedDumps.Add(line);
             lock (dumpStream)
             {
-                dumpStream.WriteLine(line);
+                dumpStream.WriteLine($"[{dumpType}][LEVEL {level}] {line}");
                 dumpStream.Flush();
             }
         }
@@ -142,13 +151,13 @@ namespace CM3D2.YATranslator.Plugin.Utils
         {
             ConsoleColor oldColor = SafeConsole.BackgroundColor;
             SafeConsole.ForegroundColor = logLevel.Color;
-            WriteLine(message);
+            Console.WriteLine(message);
             SafeConsole.ForegroundColor = oldColor;
         }
 
         public static void WriteLine(string message)
         {
-            Console.WriteLine(message);
+            WriteLine(LogLevel.Normal, message);
         }
 
         public static void DumpTexture(DumpType dumpType, string name, Texture2D texture, bool duplicate)
@@ -179,27 +188,6 @@ namespace CM3D2.YATranslator.Plugin.Utils
             }
         }
 
-        private static string GetDumpFolderName(DumpType dumpType) => DumpFolderNames[(int) dumpType];
-
-        private static Texture2D Duplicate(Texture texture)
-        {
-            RenderTexture render =
-                    RenderTexture.GetTemporary(texture.width,
-                                               texture.height,
-                                               0,
-                                               RenderTextureFormat.Default,
-                                               RenderTextureReadWrite.Linear);
-            Graphics.Blit(texture, render);
-            RenderTexture previous = RenderTexture.active;
-            RenderTexture.active = render;
-            Texture2D result = new Texture2D(texture.width, texture.height);
-            result.ReadPixels(new Rect(0, 0, render.width, render.height), 0, 0);
-            result.Apply();
-            RenderTexture.active = previous;
-            RenderTexture.ReleaseTemporary(render);
-            return result;
-        }
-
         public static void DumpVoice(string name, AudioClip clip)
         {
             if (!CanDump(DumpType.Voice) || clip == null || !InitDump())
@@ -221,6 +209,27 @@ namespace CM3D2.YATranslator.Plugin.Utils
                 fs.Write(wavData, 0, wavData.Length);
                 fs.Flush();
             }
+        }
+
+        private static string GetDumpFolderName(DumpType dumpType) => DumpFolderNames[(int) dumpType];
+
+        private static Texture2D Duplicate(Texture texture)
+        {
+            RenderTexture render =
+                    RenderTexture.GetTemporary(texture.width,
+                                               texture.height,
+                                               0,
+                                               RenderTextureFormat.Default,
+                                               RenderTextureReadWrite.Linear);
+            Graphics.Blit(texture, render);
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture.active = render;
+            Texture2D result = new Texture2D(texture.width, texture.height);
+            result.ReadPixels(new Rect(0, 0, render.width, render.height), 0, 0);
+            result.Apply();
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(render);
+            return result;
         }
     }
 }

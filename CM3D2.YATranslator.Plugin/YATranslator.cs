@@ -16,6 +16,8 @@ namespace CM3D2.YATranslator.Plugin
     [PluginName("Yet Another Translator")]
     public class YATranslator : PluginBase
     {
+        private const string TEMPLATE_STRING_PREFIX = "\u00a0";
+
         private string lastFoundAsset;
         private string lastFoundTexture;
         private string lastLoadedAsset;
@@ -194,7 +196,11 @@ namespace CM3D2.YATranslator.Plugin
             if (string.IsNullOrEmpty(inputText))
                 return;
 
-            Logger.WriteLine(ResourceType.Strings, LogLevel.Minor, $"Translation::FindString::{inputText}");
+            if (inputText.StartsWith(TEMPLATE_STRING_PREFIX))
+            {
+                e.Translation = inputText.Substring(TEMPLATE_STRING_PREFIX.Length);
+                return;
+            }
 
             bool isAudioClipName = inputText.StartsWith(Subtitles.AUDIOCLIP_PREFIX);
             if (isAudioClipName)
@@ -202,18 +208,25 @@ namespace CM3D2.YATranslator.Plugin
 
             e.Translation = Memory.GetTextTranslation(inputText);
 
+            if (e.Type == StringType.Template && e.Translation != null)
+            {
+                e.Translation = TEMPLATE_STRING_PREFIX + e.Translation;
+                return;
+            }
+
             if (Memory.WasTranslated(e.Translation ?? inputText))
                 return;
 
-            if (isAudioClipName && e.Translation == null)
-                e.Translation = inputText;
             if (!isAudioClipName)
             {
                 Clipboard.AddText(inputText, CurrentLevel);
-                Logger.DumpLine($"[STRING][LEVEL {CurrentLevel}] {inputText}");
+                Logger.DumpLine(inputText, CurrentLevel);
             }
             else
-                Logger.DumpLine($"[VOICE][LEVEL {CurrentLevel}] {inputText}", DumpType.Voice);
+            {
+                e.Translation = inputText;
+                Logger.DumpLine(inputText, CurrentLevel, DumpType.Voice);
+            }
         }
 
         private void OnTextureLoad(object sender, TextureTranslationEventArgs e)

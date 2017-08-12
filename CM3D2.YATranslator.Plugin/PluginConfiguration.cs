@@ -38,6 +38,8 @@ namespace CM3D2.YATranslator.Plugin
         public bool HideWhenClipStops = true;
         public bool Outline = true;
         public float OutlineThickness = 1.0f;
+
+        public bool ShowUntranslatedText = false;
         public TextAnchor Alignment { get; private set; } = TextAnchor.UpperCenter;
         public Color Color { get; private set; } = Color.white;
 
@@ -77,8 +79,6 @@ namespace CM3D2.YATranslator.Plugin
             get => OutlineColor.ToString();
             set => OutlineColor = ParseColor(value);
         }
-
-        public bool ShowUntranslatedText = false;
 
         private static Vector2 ParseVec2(string value)
         {

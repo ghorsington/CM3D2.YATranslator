@@ -1,6 +1,5 @@
 using System.Collections;
 using System.IO;
-using CM3D2.YATranslator.Hook;
 using CM3D2.YATranslator.Plugin.Utils;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,15 +10,14 @@ namespace CM3D2.YATranslator.Plugin
     public class Subtitles : MonoBehaviour
     {
         public const string AUDIOCLIP_PREFIX = "#";
+        private ManagedCoroutine currentAudioTracker = ManagedCoroutine.NoRoutine;
+        private SubtitleConfiguration currentConfig;
+        private bool hideAfterSound;
+        private Outline outline;
+        private bool showUntranslatedText;
 
         private Text subtitleText;
-        private Outline outline;
         private GameObject translationCanvas;
-        private Coroutine currentAudioTracker;
-        public bool Enabled { get; private set; }
-        private bool hideAfterSound;
-        private bool showUntranslatedText;
-        private SubtitleConfiguration currentConfig;
 
         public SubtitleConfiguration Configuration
         {
@@ -33,6 +31,8 @@ namespace CM3D2.YATranslator.Plugin
                 InitText();
             }
         }
+
+        public bool Enabled { get; private set; }
 
         public void Awake()
         {
@@ -61,27 +61,11 @@ namespace CM3D2.YATranslator.Plugin
 
             subtitleText = panel.AddComponent<Text>();
             subtitleText.transform.SetParent(panel.transform, false);
-            Font myFont = (Font)Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
+            Font myFont = (Font) Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
             subtitleText.font = myFont;
             subtitleText.material = myFont.material;
             subtitleText.text = string.Empty;
             InitText();
-        }
-
-        private void InitText()
-        {
-            if (outline == null || subtitleText == null)
-                return;
-
-            outline.enabled = currentConfig.Outline;
-            outline.effectDistance = new Vector2(currentConfig.OutlineThickness, currentConfig.OutlineThickness);
-            outline.effectColor = currentConfig.OutlineColor;
-
-            subtitleText.fontSize = currentConfig.FontSize;
-            subtitleText.fontStyle = currentConfig.Style;
-            subtitleText.material.color = currentConfig.Color;
-            subtitleText.alignment = currentConfig.Alignment;
-            subtitleText.rectTransform.anchoredPosition = currentConfig.Offset;
         }
 
         public void DisplayFor(AudioSourceMgr mgr)
@@ -89,8 +73,7 @@ namespace CM3D2.YATranslator.Plugin
             if (!Enabled)
                 return;
 
-            if (currentAudioTracker != null)
-                StopCoroutine(currentAudioTracker);
+            currentAudioTracker.Stop();
 
             string soundName = Path.GetFileNameWithoutExtension(mgr.FileName);
             subtitleText.text = AUDIOCLIP_PREFIX + soundName;
@@ -110,11 +93,26 @@ namespace CM3D2.YATranslator.Plugin
                     yield return new WaitForSeconds(0.1f);
 
                 subtitleText.text = string.Empty;
-                currentAudioTracker = null;
             }
 
             if (hideAfterSound)
-                currentAudioTracker = StartCoroutine(TrackSubtitleAudio(mgr.audiosource));
+                currentAudioTracker = this.StartManagedCoroutine(TrackSubtitleAudio(mgr.audiosource));
+        }
+
+        private void InitText()
+        {
+            if (outline == null || subtitleText == null)
+                return;
+
+            outline.enabled = currentConfig.Outline;
+            outline.effectDistance = new Vector2(currentConfig.OutlineThickness, currentConfig.OutlineThickness);
+            outline.effectColor = currentConfig.OutlineColor;
+
+            subtitleText.fontSize = currentConfig.FontSize;
+            subtitleText.fontStyle = currentConfig.Style;
+            subtitleText.material.color = currentConfig.Color;
+            subtitleText.alignment = currentConfig.Alignment;
+            subtitleText.rectTransform.anchoredPosition = currentConfig.Offset;
         }
     }
 }
