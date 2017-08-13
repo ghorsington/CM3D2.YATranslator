@@ -34,6 +34,8 @@ and remove some unneeded quirks.
 * **Logging and dumping** is improved
   * You can log different asset translation separately
   * Can dump untranslated assets and textures
+* **Subtitle** support
+* **Text-to-clipboard** supported internally
 
 
 ## Building
