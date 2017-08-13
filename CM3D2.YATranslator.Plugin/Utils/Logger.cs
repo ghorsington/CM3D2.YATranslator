@@ -12,7 +12,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
         Textures = 1,
         Assets = 2,
         TexSprites = 3,
-        Voice = 4
+        Voices = 4
     }
 
     public class LogLevel
@@ -190,14 +190,14 @@ namespace CM3D2.YATranslator.Plugin.Utils
 
         public static void DumpVoice(string name, AudioClip clip)
         {
-            if (!CanDump(DumpType.Voice) || clip == null || !InitDump())
+            if (!CanDump(DumpType.Voices) || clip == null || !InitDump())
                 return;
 
             if (cachedDumps.Contains(name))
                 return;
             cachedDumps.Add(name);
 
-            string path = Path.Combine(GetDumpFolderName(DumpType.Voice), $"{name}.wav");
+            string path = Path.Combine(GetDumpFolderName(DumpType.Voices), $"{name}.wav");
             if (File.Exists(path))
                 return;
 

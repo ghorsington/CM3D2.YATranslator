@@ -105,7 +105,7 @@ namespace CM3D2.YATranslator.Plugin
             if (!Settings.Subtitles.Enable || e.AudioSourceMgr.SoundType != AudioSourceMgr.Type.Voice)
                 return;
 
-            Logger.WriteLine(ResourceType.Voices, $"Translation::Voice {e.AudioSourceMgr.FileName}");
+            Logger.WriteLine(ResourceType.Voices, $"Translation::Voices {e.AudioSourceMgr.FileName}");
 
             Subtitles.DisplayFor(e.AudioSourceMgr);
         }
@@ -225,7 +225,7 @@ namespace CM3D2.YATranslator.Plugin
             else
             {
                 e.Translation = inputText;
-                Logger.DumpLine(inputText, CurrentLevel, DumpType.Voice);
+                Logger.DumpLine(inputText, CurrentLevel, DumpType.Voices);
             }
         }
 

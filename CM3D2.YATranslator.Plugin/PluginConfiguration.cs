@@ -57,7 +57,7 @@ namespace CM3D2.YATranslator.Plugin
         }
 
         public Vector2 Offset { get; private set; } = Vector2.zero;
-        public Color OutlineColor { get; private set; } = Color.black;
+        public Color TextOutlineColor { get; private set; } = Color.black;
         public FontStyle Style { get; private set; } = UnityEngine.FontStyle.Bold;
 
         public string TextAlignment
@@ -74,10 +74,10 @@ namespace CM3D2.YATranslator.Plugin
             set => Offset = ParseVec2(value);
         }
 
-        public string TextOutlineColor
+        public string OutlineColor
         {
-            get => OutlineColor.ToString();
-            set => OutlineColor = ParseColor(value);
+            get => TextOutlineColor.ToString();
+            set => TextOutlineColor = ParseColor(value);
         }
 
         private static Vector2 ParseVec2(string value)

@@ -106,7 +106,7 @@ namespace CM3D2.YATranslator.Plugin
 
             outline.enabled = currentConfig.Outline;
             outline.effectDistance = new Vector2(currentConfig.OutlineThickness, currentConfig.OutlineThickness);
-            outline.effectColor = currentConfig.OutlineColor;
+            outline.effectColor = currentConfig.TextOutlineColor;
 
             subtitleText.fontSize = currentConfig.FontSize;
             subtitleText.fontStyle = currentConfig.Style;
