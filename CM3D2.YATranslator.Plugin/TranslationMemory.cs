@@ -123,6 +123,9 @@ namespace CM3D2.YATranslator.Plugin
             return null;
         }
 
+        public bool TryGetOriginal(string translation, out string original) =>
+                translatedStrings.TryGetValue(translation, out original);
+
         public bool WasTranslated(string translation) => translatedStrings.ContainsKey(translation);
 
         public string GetTexturePath(string name) => cachedTexturePaths.TryGetValue(name, out string path)

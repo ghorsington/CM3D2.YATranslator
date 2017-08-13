@@ -70,6 +70,7 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
             TypeDefinition freeSceneUi = assembly.MainModule.GetType("FreeScene_UI");
             TypeDefinition trophyUi = assembly.MainModule.GetType("Trophy_UI");
             TypeDefinition audioSrcMgr = assembly.MainModule.GetType("AudioSourceMgr");
+            TypeDefinition cultivationInv = assembly.MainModule.GetType("VRCultivationSeedInventory");
 
             MethodDefinition infoReplace = scheduleApi.GetMethod("InfoReplace");
             MethodDefinition onTranslateInfoText = hookType.GetMethod(nameof(TranslationHooks.OnTranslateInfoText));
@@ -125,6 +126,18 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
             MethodDefinition loadPlay = audioSrcMgr.GetMethod("Play");
             MethodDefinition onLoadSound = hookType.GetMethod(nameof(TranslationHooks.OnPlaySound));
             loadPlay.InjectWith(onLoadSound, flags: InjectFlags.PassInvokingInstance);
+
+            MethodDefinition getSeedButton = cultivationInv.GetMethod("GetSeedButton");
+            MethodDefinition onGetSeedButton = hookType.GetMethod(nameof(TranslationHooks.OnGetSeedButton));
+            getSeedButton.InjectWith(onGetSeedButton,
+                                     flags: InjectFlags.PassParametersVal
+                                            | InjectFlags.ModifyReturn
+                                            | InjectFlags.PassFields,
+                                     typeFields: new[] { cultivationInv.GetField("m_UIButtonPlantSeeds") });
+
+            MethodDefinition getSeedType = cultivationInv.GetMethod("GetSeedType");
+            MethodDefinition onSystemTextTranslate = hookType.GetMethod(nameof(TranslationHooks.OnGetSeedType));
+            getSeedType.InjectWith(onSystemTextTranslate, flags: InjectFlags.PassParametersRef);
         }
 
         private static void HookOnTextureLoaded(AssemblyDefinition assembly, MethodReference textureLoadedHook)

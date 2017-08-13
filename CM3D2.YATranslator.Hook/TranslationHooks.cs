@@ -14,8 +14,48 @@ namespace CM3D2.YATranslator.Hook
         public static event EventHandler<GraphicTranslationEventArgs> TranslateGraphic;
         public static event EventHandler<TextureTranslationEventArgs> SpriteLoad;
         public static event EventHandler<StringTranslationEventArgs> TranslateText;
+        public static event EventHandler<StringTranslationEventArgs> GetOppositePair;
+        public static event EventHandler<StringTranslationEventArgs> GetOriginalText;
         public static event EventHandler<SoundEventArgs> PlaySound;
 
+
+        public static bool OnGetSeedButton(out Button result, ref Button[] buttons, string str)
+        {
+            StringTranslationEventArgs args = new StringTranslationEventArgs
+            {
+                Text = str,
+                Type = StringType.Unknown
+            };
+
+            GetOppositePair?.Invoke(null, args);
+
+            string other = args.Translation;
+
+            foreach (Button button in buttons)
+            {
+                Text text = button.GetComponentInChildren<Text>();
+                if (text.text != str && (other == null || text.text != other))
+                    continue;
+                result = button;
+                return true;
+            }
+            result = null;
+            return false;
+        }
+
+        public static void OnGetSeedType(ref string str)
+        {
+            StringTranslationEventArgs args = new StringTranslationEventArgs
+            {
+                Text = str,
+                Type = StringType.Unknown
+            };
+
+            GetOriginalText?.Invoke(null, args);
+
+            if (!string.IsNullOrEmpty(args.Translation))
+                str = args.Translation;
+        }
 
         public static void OnTranslateGraphic(MaskableGraphic graphic)
         {
