@@ -109,8 +109,8 @@ namespace CM3D2.SubtitleDumper
                             string transcript = reader.ReadLine();
                             if (transcript == null)
                                 continue;
-
-                            transcript = transcript.Trim().Replace(";", "");
+                            
+                            transcript = transcript.Replace(";", "").Replace("//", "").Trim();
 
                             if (transcript.StartsWith("@"))
                                 continue;
