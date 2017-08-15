@@ -15,6 +15,7 @@ namespace CM3D2.SubtitleDumper
 {
     public class DumpWorker
     {
+        public static HashSet<string> dumpedStrings = new HashSet<string>();
         private readonly List<string> files;
 
         public DumpWorker(ManualResetEvent doneEvent, List<string> files)
@@ -42,8 +43,6 @@ namespace CM3D2.SubtitleDumper
                     Program.Logger.Error($"Failed to load {arcFile}");
                     continue;
                 }
-
-                bool isChangeDateWritten = false;
 
                 Program.Logger.Info($"Opened {fileSystem}");
 
@@ -86,19 +85,17 @@ namespace CM3D2.SubtitleDumper
                         }
                     }
 
-                    StreamWriter sw = null;
                     FilePointerBase pointer = file.Pointer;
                     byte[] data = pointer.Compressed ? pointer.Decompress().Data : pointer.Data;
 
+                    Dictionary<string, string> transcriptDictionary = new Dictionary<string, string>();
                     using (StreamReader reader = new StreamReader(new MemoryStream(data), Encoding.GetEncoding(932)))
                     {
-                        bool isDescriptionWritten = false;
-
                         string line;
                         while ((line = reader.ReadLine()) != null)
                         {
                             line = line.Trim();
-                            if (line.StartsWith(";") || !line.Contains(Program.VOICE_TAG))
+                            if (!line.Contains(Program.VOICE_TAG))
                                 continue;
                             Match voiceMatch = Program.VoiceRegex.Match(line);
                             if (!voiceMatch.Success)
@@ -110,40 +107,67 @@ namespace CM3D2.SubtitleDumper
                             if (transcript == null)
                                 continue;
                             
-                            transcript = transcript.Replace(";", "").Replace("//", "").Trim();
+                            transcript = transcript.Replace(";", "").Trim();
 
                             if (string.IsNullOrEmpty(transcript) || transcript.StartsWith("@") || transcript.StartsWith("*L"))
                                 continue;
 
+                            bool isIncluded = transcriptDictionary.TryGetValue(subFileName, out string oldCapture);
+
+                            if (isIncluded)
+                            {
+                                bool isOldComment = oldCapture.StartsWith("//");
+                                bool isNewComment = transcript.StartsWith("//");
+
+                                if (isOldComment && !isNewComment)
+                                    transcriptDictionary[subFileName] = transcript;
+                                else
+                                    continue;
+                            }
+
                             bool contains = prevTranslations.TryGetValue(subFileName, out string oldTranscript);
                             if (contains && oldTranscript == transcript)
+                            {
+                                if (isIncluded)
+                                    transcriptDictionary.Remove(subFileName);
                                 continue;
-
-                            if (sw == null)
-                            {
-                                if (!Directory.Exists(directoryName))
-                                    Directory.CreateDirectory(directoryName);
-                                sw = new StreamWriter(File.Open(outputPath, FileMode.Append, FileAccess.Write),
-                                                      Encoding.UTF8);
                             }
 
-                            if (!isChangeDateWritten)
+                            string subLine = $"{subFileName}\t{transcript}";
+
+                            lock (dumpedStrings)
                             {
-                                sw.WriteLine($"; Changes from {DateTime.Now:yyyy-MM-dd-HHmmss}");
-                                isChangeDateWritten = true;
+                                if (dumpedStrings.Contains(subLine))
+                                    continue;
+
+                                dumpedStrings.Add(subLine);
                             }
 
-                            if (!isDescriptionWritten)
-                            {
-                                sw.WriteLine($"; From {fileSystem.Name}\\{file.Name}");
-                                isDescriptionWritten = true;
-                            }
-                            sw.WriteLine($"{subFileName}\t{transcript}");
+                            if(!isIncluded)
+                                transcriptDictionary.Add(subFileName, transcript);
+
                             prevTranslations[subFileName] = transcript;
                         }
                     }
-                    sw?.Close();
-                    sw?.Dispose();
+
+                    if (transcriptDictionary.Count != 0)
+                    {
+                        if (!Directory.Exists(directoryName))
+                            Directory.CreateDirectory(directoryName);
+                        using (StreamWriter sw =
+                                new StreamWriter(File.Open(outputPath, FileMode.Append, FileAccess.Write),
+                                                 Encoding.UTF8))
+                        {
+                            sw.WriteLine($"; Changes from {DateTime.Now:yyyy-MM-dd-HHmmss}");
+
+                            sw.WriteLine($"; From {fileSystem.Name}\\{file.Name}");
+
+                            foreach (KeyValuePair<string, string> pair in transcriptDictionary)
+                            {
+                                sw.WriteLine($"{pair.Key}\t{pair.Value}");
+                            }
+                        }
+                    }
                 }
             }
         }
