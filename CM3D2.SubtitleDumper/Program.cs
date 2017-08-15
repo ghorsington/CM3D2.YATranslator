@@ -112,7 +112,7 @@ namespace CM3D2.SubtitleDumper
                             
                             transcript = transcript.Replace(";", "").Replace("//", "").Trim();
 
-                            if (transcript.StartsWith("@"))
+                            if (string.IsNullOrEmpty(transcript) || transcript.StartsWith("@") || transcript.StartsWith("*L"))
                                 continue;
 
                             bool contains = prevTranslations.TryGetValue(subFileName, out string oldTranscript);
