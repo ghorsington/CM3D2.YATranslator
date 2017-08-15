@@ -178,7 +178,10 @@ namespace CM3D2.SubtitleDumper
             int filesPerThread = args.Length / MaxThreads;
 
             if (filesPerThread <= 1)
+            {
                 RunSingleThread(args);
+                return;
+            }
 
             int workerid = 0;
             List<string> workList = new List<string>();
