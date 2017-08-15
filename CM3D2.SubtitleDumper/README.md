@@ -32,7 +32,12 @@ For instance, dumping subtitles from all ARC files starting with a word "script"
 CM3D2.SubtitleDumper.exe script*.arc
 ```
 
-> NOTE: If you are using PowerShell, make sure to put `.\` before `CM3D2.SubtitleDumper.exe` AND file names. In the previous example you would thus use `.\CM3D2.SubtitleDumper.exe .\script*.arc`.
+> NOTE: If you are using PowerShell, use the following *two* commands:
+> ```
+> $files = Get-ChildItem script*.arc | % { $_.Name }
+> .\CM3D2.SubtitleDumper.exe $files
+> ```
+> Replace `script*.arc` with the pattern you'd like.
 
 ## Output
 
