@@ -15,14 +15,16 @@ namespace CM3D2.SubtitleDumper
 {
     public class DumpWorker
     {
-        public static HashSet<string> dumpedStrings = new HashSet<string>();
         private readonly List<string> files;
 
         public DumpWorker(ManualResetEvent doneEvent, List<string> files)
         {
             DoneEvent = doneEvent;
             this.files = files;
+            CapturedSubtitles = new Dictionary<string, string>();
         }
+
+        public Dictionary<string, string> CapturedSubtitles { get; }
 
         public ManualResetEvent DoneEvent { get; set; }
 
@@ -30,6 +32,23 @@ namespace CM3D2.SubtitleDumper
         {
             DumpStrings();
             DoneEvent?.Set();
+        }
+
+        private void WriteSubtitlesToFile(string outputPath)
+        {
+            string directoryName = Path.GetDirectoryName(outputPath);
+            if (!Directory.Exists(directoryName))
+                Directory.CreateDirectory(directoryName);
+            using (StreamWriter sw = new StreamWriter(File.Open(outputPath, FileMode.Append, FileAccess.Write),
+                                                      Encoding.UTF8))
+            {
+                sw.WriteLine($"; Changes from {DateTime.Now:yyyy-MM-dd-HHmmss}");
+
+                foreach (KeyValuePair<string, string> pair in CapturedSubtitles)
+                    sw.WriteLine($"{pair.Key}\t{pair.Value}".Trim());
+            }
+
+            CapturedSubtitles.Clear();
         }
 
         private void DumpStrings()
@@ -46,6 +65,7 @@ namespace CM3D2.SubtitleDumper
 
                 Program.Logger.Info($"Opened {fileSystem}");
 
+                bool specifiedFileName = false;
                 int fileCount = 0;
                 int maxFiles = fileSystem.Files.Count();
                 foreach (ArcFileEntry file in fileSystem.Files)
@@ -58,37 +78,9 @@ namespace CM3D2.SubtitleDumper
                         continue;
                     }
 
-                    string filePath = file.FullName.Substring(fileSystem.Root.Name.Length + 1);
-                    filePath = Path.Combine(Path.GetFileNameWithoutExtension(fileSystem.Name),
-                                            filePath.Remove(filePath.Length - 3, 3) + ".txt");
-                    string outputPath = Path.Combine(Program.OUTPUT_DIR, filePath);
-                    string directoryName = Path.GetDirectoryName(outputPath);
-
-                    Dictionary<string, string> prevTranslations = new Dictionary<string, string>();
-
-                    if (File.Exists(outputPath))
-                    {
-                        Program.Logger.Info("Found existing dump. Reading previous text");
-                        using (StreamReader sr = File.OpenText(outputPath))
-                        {
-                            string line;
-                            while ((line = sr.ReadLine()) != null)
-                            {
-                                if (line.StartsWith(";"))
-                                    continue;
-
-                                string[] parts = line.Split(new[] {'\t'}, StringSplitOptions.RemoveEmptyEntries);
-                                if (parts.Length < 2)
-                                    continue;
-                                prevTranslations[parts[0]] = parts[1];
-                            }
-                        }
-                    }
-
+                    bool specifiedScriptName = false;
                     FilePointerBase pointer = file.Pointer;
                     byte[] data = pointer.Compressed ? pointer.Decompress().Data : pointer.Data;
-
-                    Dictionary<string, string> transcriptDictionary = new Dictionary<string, string>();
                     using (StreamReader reader = new StreamReader(new MemoryStream(data), Encoding.GetEncoding(932)))
                     {
                         string line;
@@ -103,84 +95,95 @@ namespace CM3D2.SubtitleDumper
 
                             string subFileName = voiceMatch.Groups["voice"].Value.Trim();
 
+                            if (string.IsNullOrEmpty(subFileName))
+                                continue;
+
                             string transcript = reader.ReadLine();
                             if (transcript == null)
                                 continue;
-                            
+
                             transcript = transcript.Replace(";", "").Trim();
 
-                            if (string.IsNullOrEmpty(transcript) || transcript.StartsWith("@") || transcript.StartsWith("*L"))
+                            if (string.IsNullOrEmpty(transcript)
+                                || transcript.StartsWith("@")
+                                || transcript.StartsWith("*L"))
                                 continue;
 
-                            bool isIncluded = transcriptDictionary.TryGetValue(subFileName, out string oldCapture);
-
-                            if (isIncluded)
+                            lock (Program.ExistingSubtitles)
                             {
-                                bool isOldComment = oldCapture.StartsWith("//");
-                                bool isNewComment = transcript.StartsWith("//");
-
-                                if (isOldComment && !isNewComment)
-                                    transcriptDictionary[subFileName] = transcript;
-                                else
+                                if (Program.ExistingSubtitles.TryGetValue(subFileName, out string existingSubtitle)
+                                    && (transcript.StartsWith("//")
+                                        || existingSubtitle.Equals(transcript, StringComparison.InvariantCulture)))
                                     continue;
                             }
 
-                            bool contains = prevTranslations.TryGetValue(subFileName, out string oldTranscript);
-                            if (contains && oldTranscript == transcript)
+                            lock (Program.FoundSubtitles)
                             {
-                                if (isIncluded)
-                                    transcriptDictionary.Remove(subFileName);
-                                continue;
-                            }
-
-                            string subLine = $"{subFileName}\t{transcript}";
-
-                            lock (dumpedStrings)
-                            {
-                                if (dumpedStrings.Contains(subLine))
+                                if (Program.FoundSubtitles.TryGetValue(subFileName, out string found)
+                                    && (transcript.StartsWith("//")
+                                        || found.Equals(transcript, StringComparison.InvariantCulture)))
                                     continue;
-
-                                dumpedStrings.Add(subLine);
+                                Program.FoundSubtitles[subFileName] = transcript;
                             }
 
-                            if(!isIncluded)
-                                transcriptDictionary.Add(subFileName, transcript);
-
-                            prevTranslations[subFileName] = transcript;
+                            if (!specifiedFileName)
+                            {
+                                specifiedFileName = true;
+                                CapturedSubtitles.Add($"; {fileSystem.Name}", string.Empty);
+                            }
+                            if (!specifiedScriptName)
+                            {
+                                specifiedScriptName = true;
+                                CapturedSubtitles.Add($"; From {fileSystem.Name}\\{file.Name}", string.Empty);
+                            }
+                            CapturedSubtitles[subFileName] = transcript;
                         }
                     }
 
-                    if (transcriptDictionary.Count != 0)
+                    if (Program.MergeType == MergeType.None && CapturedSubtitles.Count != 0)
                     {
-                        if (!Directory.Exists(directoryName))
-                            Directory.CreateDirectory(directoryName);
-                        using (StreamWriter sw =
-                                new StreamWriter(File.Open(outputPath, FileMode.Append, FileAccess.Write),
-                                                 Encoding.UTF8))
-                        {
-                            sw.WriteLine($"; Changes from {DateTime.Now:yyyy-MM-dd-HHmmss}");
+                        string filePath = file.FullName.Substring(fileSystem.Root.Name.Length + 1);
+                        filePath = Path.Combine(Path.GetFileNameWithoutExtension(fileSystem.Name),
+                                                filePath.Remove(filePath.Length - 3, 3) + ".txt");
+                        string outputPath = Path.Combine(Program.OUTPUT_DIR, filePath);
 
-                            sw.WriteLine($"; From {fileSystem.Name}\\{file.Name}");
-
-                            foreach (KeyValuePair<string, string> pair in transcriptDictionary)
-                            {
-                                sw.WriteLine($"{pair.Key}\t{pair.Value}");
-                            }
-                        }
+                        WriteSubtitlesToFile(outputPath);
                     }
+                }
+
+                if (Program.MergeType == MergeType.PerArc && CapturedSubtitles.Count != 0)
+                {
+                    string outputPath = Path.Combine(Program.OUTPUT_DIR,
+                                                     Path.GetFileNameWithoutExtension(fileSystem.Name) + ".txt");
+                    WriteSubtitlesToFile(outputPath);
                 }
             }
         }
     }
 
+    public enum MergeType
+    {
+        None,
+        PerArc,
+        SingleFile
+    }
+
     public class Program
     {
+        public static Dictionary<string, string> ExistingSubtitles = new Dictionary<string, string>();
+        public static Dictionary<string, string> FoundSubtitles = new Dictionary<string, string>();
+
         public static readonly Logger Logger = new Logger();
+        public const string MERGE_PARAM_START = "--merge=";
         public const string OUTPUT_DIR = "output";
+        public static readonly Regex ParamRegex = new Regex(@"\((?<params>[\s\S]+)\)");
         public const string SCRIPT_EXTENSION = ".ks";
+        public const string THREAD_PARAM_START = "--max-threads=";
         public const string VOICE_TAG = "voice=";
         public static readonly Regex VoiceRegex = new Regex(@"voice=(?<voice>\S*)", RegexOptions.Compiled);
-        private const int MaxThreads = 4;
+
+        private static int MaxThreads = 4;
+        public static MergeType MergeType { get; private set; } = MergeType.None;
         public static string ProcessName => Process.GetCurrentProcess().ProcessName;
 
         public static void Main(string[] args)
@@ -191,25 +194,99 @@ namespace CM3D2.SubtitleDumper
                 return;
             }
 
+            string processName = ProcessName;
+
+            Match paramMatch = ParamRegex.Match(processName);
+            if (paramMatch.Success)
+            {
+                string[] prms = paramMatch.Groups["params"]
+                                          .Value.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+
+                ProcessParams(prms);
+            }
+
+            List<string> arcList = ProcessParams(args);
+
             if (!Directory.Exists(OUTPUT_DIR))
                 Directory.CreateDirectory(OUTPUT_DIR);
 
             Logger.Info("Beginning to write new data");
 
-            DumpWorker[] workers = new DumpWorker[MaxThreads];
-            WaitHandle[] doneEvents = new WaitHandle[MaxThreads];
+            LoadPreviousSubtitles();
 
-            int filesPerThread = args.Length / MaxThreads;
+            DumpSubtitles(arcList);
+        }
 
-            if (filesPerThread <= 1)
+        private static List<string> ProcessParams(IEnumerable<string> args)
+        {
+            List<string> result = new List<string>();
+
+            foreach (string arg in args)
+                if (arg.StartsWith(MERGE_PARAM_START))
+                {
+                    string type = arg.Substring(MERGE_PARAM_START.Length).Trim();
+                    try
+                    {
+                        MergeType = (MergeType) Enum.Parse(typeof(MergeType), type, true);
+                    }
+                    catch (Exception)
+                    {
+                        Logger.Error("Failed to parse merge type. Using default.");
+                    }
+                }
+                else if (arg.StartsWith(THREAD_PARAM_START))
+                {
+                    string threadNum = arg.Substring(THREAD_PARAM_START.Length).Trim();
+                    if (!int.TryParse(threadNum, out MaxThreads) || MaxThreads <= 0)
+                        MaxThreads = 4;
+                }
+                else
+                    result.Add(arg);
+
+            return result;
+        }
+
+        private static void LoadPreviousSubtitles()
+        {
+            if (!Directory.Exists(OUTPUT_DIR))
+                return;
+
+            foreach (string file in Directory.EnumerateFiles(OUTPUT_DIR, "*", SearchOption.AllDirectories)
+                                             .Where(f => f.EndsWith(".txt")))
             {
-                RunSingleThread(args);
+                Logger.Info($"Found possible previous dump: {Path.GetFileNameWithoutExtension(file)}");
+                using (StreamReader sr = File.OpenText(file))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        if (line.StartsWith(";"))
+                            continue;
+
+                        string[] parts = line.Split(new[] {'\t'}, StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length < 2)
+                            continue;
+                        ExistingSubtitles[parts[0]] = parts[1];
+                    }
+                }
+            }
+        }
+
+        private static void DumpSubtitles(IReadOnlyCollection<string> arcFiles)
+        {
+            int filesPerThread = arcFiles.Count / MaxThreads;
+            if (MaxThreads == 1 || filesPerThread <= 1)
+            {
+                RunSingleThread(arcFiles);
                 return;
             }
 
+            DumpWorker[] workers = new DumpWorker[MaxThreads];
+            WaitHandle[] doneEvents = new WaitHandle[MaxThreads];
+
             int workerid = 0;
             List<string> workList = new List<string>();
-            foreach (string arcFile in args)
+            foreach (string arcFile in arcFiles)
             {
                 if (!File.Exists(arcFile))
                 {
@@ -242,9 +319,33 @@ namespace CM3D2.SubtitleDumper
                 ThreadPool.QueueUserWorkItem(dumpWorker.StartWork, null);
 
             WaitHandle.WaitAll(doneEvents);
+
+            if (MergeType == MergeType.SingleFile)
+                WriteAllSubtitles(workers);
         }
 
-        private static void RunSingleThread(string[] args)
+        private static void WriteAllSubtitles(params DumpWorker[] workers)
+        {
+            if (workers.Length == 0)
+                return;
+
+            using (StreamWriter sw =
+                    new StreamWriter(File.Open(Path.Combine(OUTPUT_DIR, "output.txt"),
+                                               FileMode.Append,
+                                               FileAccess.Write),
+                                     Encoding.UTF8))
+            {
+                sw.WriteLine($"; Changes from {DateTime.Now:yyyy-MM-dd-HHmmss}");
+
+                foreach (DumpWorker worker in workers)
+                {
+                    foreach (KeyValuePair<string, string> pair in worker.CapturedSubtitles)
+                        sw.WriteLine($"{pair.Key}\t{pair.Value}".Trim());
+                }
+            }
+        }
+
+        private static void RunSingleThread(IEnumerable<string> args)
         {
             List<string> validEntries = new List<string>();
             foreach (string arcFile in args)
@@ -264,6 +365,9 @@ namespace CM3D2.SubtitleDumper
 
             DumpWorker worker = new DumpWorker(null, validEntries);
             worker.StartWork(null);
+
+            if (MergeType == MergeType.SingleFile)
+                WriteAllSubtitles(worker);
         }
 
         private static void PrintHelp()
