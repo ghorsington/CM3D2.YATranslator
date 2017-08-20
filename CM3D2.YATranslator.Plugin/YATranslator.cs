@@ -79,17 +79,7 @@ namespace CM3D2.YATranslator.Plugin
             string text = e.Text;
             if (string.IsNullOrEmpty(text))
                 return;
-            Logger.WriteLine($"Trying to reverse translation for {text}");
-            if (Memory.TryGetOriginal(text, out string original))
-            {
-                e.Translation = original;
-                Logger.WriteLine($"Got original translation: {original}");
-            }
-            else
-            {
-                Logger.WriteLine($"Got translation: {original}");
-                e.Translation = Memory.GetTextTranslation(text);
-            }
+            e.Translation = Memory.TryGetOriginal(text, out string original) ? original : Memory.GetTextTranslation(text);
         }
 
         public void OnLevelWasLoaded(int level)
@@ -123,10 +113,12 @@ namespace CM3D2.YATranslator.Plugin
             TranslationHooks.TranslateText -= OnTranslateString;
             TranslationHooks.AssetTextureLoad -= OnAssetTextureLoad;
             TranslationHooks.ArcTextureLoad -= OnTextureLoad;
-            TranslationHooks.ArcTextureLoaded -= OnArcTextureLoaded;
             TranslationHooks.SpriteLoad -= OnTextureLoad;
+            TranslationHooks.ArcTextureLoaded -= OnArcTextureLoaded;
             TranslationHooks.TranslateGraphic -= OnTranslateGraphic;
             TranslationHooks.PlaySound -= OnPlaySound;
+            TranslationHooks.GetOppositePair -= OnGetOppositePair;
+            TranslationHooks.GetOriginalText -= OnGetOriginalText;
 
             Logger.Dispose();
         }
