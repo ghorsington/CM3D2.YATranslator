@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using CM3D2.YATranslator.Hook;
+using CM3D2.YATranslator.Plugin.Features;
+using CM3D2.YATranslator.Plugin.Translation;
 using CM3D2.YATranslator.Plugin.Utils;
 using UnityEngine;
 using UnityEngine.SceneManagement;

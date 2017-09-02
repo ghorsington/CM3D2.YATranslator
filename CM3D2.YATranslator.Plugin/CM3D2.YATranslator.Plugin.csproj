@@ -50,11 +50,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Clipboard.cs" />
+    <Compile Include="Features\Clipboard.cs" />
     <Compile Include="PluginConfiguration.cs" />
-    <Compile Include="StringTranslation.cs" />
-    <Compile Include="Subtitles.cs" />
-    <Compile Include="TranslationMemory.cs" />
+    <Compile Include="Features\Subtitles.cs" />
+    <Compile Include="Translation\StringTranslations.cs" />
+    <Compile Include="Translation\TranslationMemory.cs" />
     <Compile Include="Utils\ConfigurationLoader.cs" />
     <Compile Include="Utils\ManagedCoroutine.cs" />
     <Compile Include="Utils\Extensions.cs" />

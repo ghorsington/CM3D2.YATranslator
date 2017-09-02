@@ -6,7 +6,7 @@ using UnityEngine;
 using Logger = CM3D2.YATranslator.Plugin.Utils.Logger;
 using WindowsClipboard = System.Windows.Forms.Clipboard;
 
-namespace CM3D2.YATranslator.Plugin
+namespace CM3D2.YATranslator.Plugin.Features
 {
     public class Clipboard : MonoBehaviour
     {

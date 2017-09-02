@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Logger = CM3D2.YATranslator.Plugin.Utils.Logger;
 
-namespace CM3D2.YATranslator.Plugin
+namespace CM3D2.YATranslator.Plugin.Features
 {
     public class Subtitles : MonoBehaviour
     {
