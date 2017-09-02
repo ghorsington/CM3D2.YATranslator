@@ -11,7 +11,6 @@ set hook=CM3D2.YATranslator.Hook
 set plugin=CM3D2.YATranslator.Plugin
 set patchersybaris=CM3D2.YATranslator.Sybaris.Patcher
 set patcherrei=CM3D2.YATranslator.Patch
-set subdump=CM3D2.SubtitleDumper
 
 rem SOLUTION-SPECIFIC VARIABLES END
 
@@ -95,23 +94,11 @@ if not [%plugin%] == [] (
 	)
 )
 
-if not [%subdump%] == [] (
-	rmdir /Q /S "%cd%\%subdump%\bin\%buildconf%" >NUL
-	rmdir /Q /S "%cd%\%subdump%\obj" >NUL
-
-	%msbuild% "%cd%\%subdump%\%subdump%.csproj" /p:Configuration=%buildconf%,Platform=%buildplat%
-
-	if not %ERRORLEVEL%==0 (
-		echo Failed to compile Subtitle dumper!
-	)
-)
-
 mkdir Build
 move /Y "%cd%\%hook%\bin\%buildconf%\%hook%.dll" "%cd%\Build\%hook%.dll"
 move /Y "%cd%\%patcherrei%\bin\%buildconf%\%patcherrei%.dll" "%cd%\Build\%patcherrei%.dll"
 move /Y "%cd%\%patchersybaris%\bin\%buildconf%\%patchersybaris%.dll" "%cd%\Build\%patchersybaris%.dll"
 move /Y "%cd%\%plugin%\bin\%buildconf%\%plugin%.dll" "%cd%\Build\%plugin%.dll"
-move /Y "%cd%\%subdump%\bin\%buildconf%\*" "%cd%\Build"
 
 echo All done!
 pause
