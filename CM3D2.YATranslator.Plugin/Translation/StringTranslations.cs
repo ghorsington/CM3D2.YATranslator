@@ -14,8 +14,6 @@ namespace CM3D2.YATranslator.Plugin.Translation
         private readonly Dictionary<string, string> loadedStringTranslations;
         private readonly HashSet<string> translationFilePaths;
 
-        private bool translationsLoaded;
-
         public StringTranslations(int level)
         {
             Level = level;
@@ -25,17 +23,21 @@ namespace CM3D2.YATranslator.Plugin.Translation
             loadedStringTranslations = new Dictionary<string, string>();
         }
 
+        public int FileCount => translationFilePaths.Count;
+
         public int Level { get; }
-
-        public int LoadedTranslationCount => loadedStringTranslations.Count + loadedRegexTranslations.Count;
-
-        public int LoadedStringCount => loadedStringTranslations.Count;
 
         public int LoadedRegexCount => loadedRegexTranslations.Count;
 
+        public int LoadedStringCount => loadedStringTranslations.Count;
+
+        public int LoadedTranslationCount => loadedStringTranslations.Count + loadedRegexTranslations.Count;
+
+        public bool TranslationsLoaded { get; private set; }
+
         public bool TryTranslate(string original, out string result)
         {
-            if (!translationsLoaded)
+            if (!TranslationsLoaded)
                 LoadTranslations();
 
             if (loadedStringTranslations.TryGetValue(original, out result))
@@ -55,8 +57,11 @@ namespace CM3D2.YATranslator.Plugin.Translation
         {
             translationFilePaths.Add(filePath);
 
-            if(load)
-                LoadFromFile(filePath);
+            if (!load)
+                return;
+
+            if (LoadFromFile(filePath))
+                TranslationsLoaded = true;
         }
 
         public void ClearFilePaths()
@@ -68,22 +73,32 @@ namespace CM3D2.YATranslator.Plugin.Translation
         {
             loadedRegexTranslations.Clear();
             loadedStringTranslations.Clear();
-            translationsLoaded = false;
+            TranslationsLoaded = false;
+
+            Logger.WriteLine(ResourceType.Strings,
+                             $"Translation::StringTranslations::Unloaded translations for level {Level}");
         }
 
         public bool LoadTranslations()
         {
-            if (translationsLoaded)
+            if (TranslationsLoaded)
                 return true;
 
-            foreach (string filePath in translationFilePaths)
-                LoadFromFile(filePath);
+            bool loadedValidTranslations = false;
+            foreach (string path in translationFilePaths)
+                if (LoadFromFile(path))
+                    loadedValidTranslations = true;
 
-            translationsLoaded = true;
-            return true;
+            TranslationsLoaded = loadedValidTranslations;
+
+            if (loadedValidTranslations)
+                Logger.WriteLine(ResourceType.Strings,
+                                 $"Translation::StringTranslations::Loaded {LoadedStringCount} Strings and {LoadedRegexCount} RegExes for level {Level}");
+
+            return loadedValidTranslations;
         }
 
-        private void LoadFromFile(string filePath)
+        private bool LoadFromFile(string filePath)
         {
             IEnumerable<string> translationLines = File.ReadAllLines(filePath, Encoding.UTF8).Select(m => m.Trim())
                                                        .Where(m => !m.StartsWith(";",
@@ -112,8 +127,10 @@ namespace CM3D2.YATranslator.Plugin.Translation
                 }
             }
 
-            if (translated == 0)
-                translationFilePaths.Remove(filePath);
+            if (translated != 0)
+                return true;
+            translationFilePaths.Remove(filePath);
+            return false;
         }
     }
 }

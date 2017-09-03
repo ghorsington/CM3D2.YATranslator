@@ -65,25 +65,6 @@ namespace CM3D2.YATranslator.Plugin
             Logger.WriteLine("Translation::Hooking complete");
         }
 
-        private void OnGetOriginalText(object sender, StringTranslationEventArgs e)
-        {
-            if(string.IsNullOrEmpty(e.Text))
-                return;
-
-            if (Memory.TryGetOriginal(e.Text, out string original))
-            {
-                e.Translation = original;
-            }
-        }
-
-        private void OnGetOppositePair(object sender, StringTranslationEventArgs e)
-        {
-            string text = e.Text;
-            if (string.IsNullOrEmpty(text))
-                return;
-            e.Translation = Memory.TryGetOriginal(text, out string original) ? original : Memory.GetTextTranslation(text);
-        }
-
         public void OnLevelWasLoaded(int level)
         {
             CurrentLevel = level;
@@ -125,6 +106,25 @@ namespace CM3D2.YATranslator.Plugin
             Logger.Dispose();
         }
 
+        private void OnGetOriginalText(object sender, StringTranslationEventArgs e)
+        {
+            if (string.IsNullOrEmpty(e.Text))
+                return;
+
+            if (Memory.TryGetOriginal(e.Text, out string original))
+                e.Translation = original;
+        }
+
+        private void OnGetOppositePair(object sender, StringTranslationEventArgs e)
+        {
+            string text = e.Text;
+            if (string.IsNullOrEmpty(text))
+                return;
+            e.Translation = Memory.TryGetOriginal(text, out string original)
+                                ? original
+                                : Memory.GetTextTranslation(text);
+        }
+
         private void OnPlaySound(object sender, SoundEventArgs e)
         {
             if (!Settings.Subtitles.Enable || e.AudioSourceMgr.SoundType != AudioSourceMgr.Type.Voice)
@@ -139,6 +139,7 @@ namespace CM3D2.YATranslator.Plugin
         {
             Settings = ConfigurationLoader.LoadConfig<PluginConfiguration>(Preferences);
             SaveConfig();
+            Memory.OptimizationFlags = Settings.OptimizationFlags;
             Memory.LoadResource = Settings.LoadResourceTypes;
             Memory.RetranslateText = Settings.EnableStringReload;
             Clipboard.Configuration = Settings.Clipboard;

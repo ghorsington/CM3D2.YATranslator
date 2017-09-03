@@ -11,9 +11,8 @@ namespace CM3D2.YATranslator.Plugin.Utils
         public static ManagedCoroutine StartManagedCoroutine(this MonoBehaviour self, IEnumerator coroutine) =>
                 new ManagedCoroutine(self, coroutine).Start();
 
-        public static T ParseEnum<T>(string value, bool ignoreCase = false) => (T) Enum.Parse(typeof(T),
-                                                                                              value,
-                                                                                              ignoreCase);
+        public static T ParseEnum<T>(string value, bool ignoreCase = false) =>
+                (T) Enum.Parse(typeof(T), value, ignoreCase);
 
         public static void AddIfNotPresent<TKey, TValue>(this IDictionary<TKey, TValue> self, TKey key, TValue value)
         {

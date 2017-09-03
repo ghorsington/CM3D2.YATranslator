@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
+using CM3D2.YATranslator.Plugin.Translation;
 using CM3D2.YATranslator.Plugin.Utils;
 using UnityEngine;
 using Logger = CM3D2.YATranslator.Plugin.Utils.Logger;
@@ -18,8 +19,7 @@ namespace CM3D2.YATranslator.Plugin
         {
             get => "-1";
 
-            set => AllowedLevels = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries)
-                                        .Select(int.Parse)
+            set => AllowedLevels = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)
                                         .ToArray();
         }
     }
@@ -57,7 +57,13 @@ namespace CM3D2.YATranslator.Plugin
         }
 
         public Vector2 Offset { get; private set; } = Vector2.zero;
-        public Color TextOutlineColor { get; private set; } = Color.black;
+
+        public string OutlineColor
+        {
+            get => TextOutlineColor.ToString();
+            set => TextOutlineColor = ParseColor(value);
+        }
+
         public FontStyle Style { get; private set; } = UnityEngine.FontStyle.Bold;
 
         public string TextAlignment
@@ -74,11 +80,7 @@ namespace CM3D2.YATranslator.Plugin
             set => Offset = ParseVec2(value);
         }
 
-        public string OutlineColor
-        {
-            get => TextOutlineColor.ToString();
-            set => TextOutlineColor = ParseColor(value);
-        }
+        public Color TextOutlineColor { get; private set; } = Color.black;
 
         private static Vector2 ParseVec2(string value)
         {
@@ -134,14 +136,24 @@ namespace CM3D2.YATranslator.Plugin
             {
                 string[] parts = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
                 LoadResourceTypes = parts.Aggregate(ResourceType.None,
-                                                    (current, part) => current
-                                                                       | (ResourceType) Enum.Parse(typeof(ResourceType),
-                                                                                                   part.Trim(),
-                                                                                                   true));
+                                                    (current, part) =>
+                                                        current
+                                                        | (ResourceType) Enum.Parse(typeof(ResourceType),
+                                                                                    part.Trim(),
+                                                                                    true));
             }
         }
 
         public ResourceType LoadResourceTypes { get; private set; } = ResourceType.All;
+
+        public string MemoryOptimizations
+        {
+            get => OptimizationFlags.ToString();
+
+            set => OptimizationFlags = (MemoryOptimizations) Enum.Parse(typeof(MemoryOptimizations), value, true);
+        }
+
+        public MemoryOptimizations OptimizationFlags { get; private set; } = Translation.MemoryOptimizations.None;
         public SubtitleConfiguration Subtitles { get; set; } = new SubtitleConfiguration();
 
         public string Verbosity
@@ -152,10 +164,11 @@ namespace CM3D2.YATranslator.Plugin
             {
                 string[] parts = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
                 VerbosityLevel = parts.Aggregate(ResourceType.None,
-                                                 (current, part) => current
-                                                                    | (ResourceType) Enum.Parse(typeof(ResourceType),
-                                                                                                part.Trim(),
-                                                                                                true));
+                                                 (current, part) =>
+                                                     current
+                                                     | (ResourceType) Enum.Parse(typeof(ResourceType),
+                                                                                 part.Trim(),
+                                                                                 true));
                 Logger.Verbosity = VerbosityLevel;
             }
         }

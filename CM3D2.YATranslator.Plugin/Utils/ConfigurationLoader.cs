@@ -30,8 +30,8 @@ namespace CM3D2.YATranslator.Plugin.Utils
         {
             Type configType = configObject.GetType();
 
-            IEnumerable<FieldInfo> fields = configType.GetFields(BindingFlags.Public | BindingFlags.Instance)
-                                                      .Where(f => !f.IsInitOnly);
+            IEnumerable<FieldInfo> fields =
+                    configType.GetFields(BindingFlags.Public | BindingFlags.Instance).Where(f => !f.IsInitOnly);
             IEnumerable<PropertyInfo> properties = configType
                     .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                     .Where(p => p.GetGetMethod() != null && p.GetSetMethod() != null);

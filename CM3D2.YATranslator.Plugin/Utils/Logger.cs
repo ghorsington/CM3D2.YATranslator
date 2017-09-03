@@ -215,12 +215,11 @@ namespace CM3D2.YATranslator.Plugin.Utils
 
         private static Texture2D Duplicate(Texture texture)
         {
-            RenderTexture render =
-                    RenderTexture.GetTemporary(texture.width,
-                                               texture.height,
-                                               0,
-                                               RenderTextureFormat.Default,
-                                               RenderTextureReadWrite.Linear);
+            RenderTexture render = RenderTexture.GetTemporary(texture.width,
+                                                              texture.height,
+                                                              0,
+                                                              RenderTextureFormat.Default,
+                                                              RenderTextureReadWrite.Linear);
             Graphics.Blit(texture, render);
             RenderTexture previous = RenderTexture.active;
             RenderTexture.active = render;
