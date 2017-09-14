@@ -74,7 +74,7 @@ namespace CM3D2.YATranslator.Plugin.Features
 
         public string DisplayForLast(string text)
         {
-            if (lastWasTranslated || lastPlayed == null || !lastPlayed.isPlaying)
+            if (!Enabled || lastWasTranslated || lastPlayed == null || !lastPlayed.isPlaying)
                 return null;
 
             currentAudioTracker.Stop();
