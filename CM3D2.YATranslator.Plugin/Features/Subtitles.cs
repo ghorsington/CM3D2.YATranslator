@@ -34,6 +34,10 @@ namespace CM3D2.YATranslator.Plugin.Features
 
         public bool Enabled { get; private set; }
 
+        private string lastPlayedName = null;
+        private AudioSource lastPlayed = null;
+        private bool lastWasTranslated = false;
+
         public void Awake()
         {
             DontDestroyOnLoad(this);
@@ -68,11 +72,26 @@ namespace CM3D2.YATranslator.Plugin.Features
             InitText();
         }
 
+        public string DisplayForLast(string text)
+        {
+            if (lastWasTranslated || lastPlayed == null || !lastPlayed.isPlaying)
+                return null;
+
+            currentAudioTracker.Stop();
+            subtitleText.text = text;
+
+            lastWasTranslated = true;
+            TrackAudio(lastPlayed);
+            return lastPlayedName;
+        }
+
         public void DisplayFor(AudioSourceMgr mgr)
         {
             if (!Enabled)
                 return;
 
+            lastPlayed = mgr.audiosource;
+            lastPlayedName = mgr.FileName;
             currentAudioTracker.Stop();
 
             string soundName = Path.GetFileNameWithoutExtension(mgr.FileName);
@@ -80,12 +99,20 @@ namespace CM3D2.YATranslator.Plugin.Features
 
             if (subtitleText.text == soundName)
             {
+                lastWasTranslated = false;
                 if (!showUntranslatedText)
                     subtitleText.text = string.Empty;
-
+                
                 Logger.DumpVoice(soundName, mgr.audiosource.clip);
             }
+            else
+                lastWasTranslated = true;
 
+            TrackAudio(mgr.audiosource);
+        }
+
+        private void TrackAudio(AudioSource audoSrc)
+        {
             IEnumerator TrackSubtitleAudio(AudioSource audio)
             {
                 yield return null;
@@ -96,7 +123,7 @@ namespace CM3D2.YATranslator.Plugin.Features
             }
 
             if (hideAfterSound)
-                currentAudioTracker = this.StartManagedCoroutine(TrackSubtitleAudio(mgr.audiosource));
+                currentAudioTracker = this.StartManagedCoroutine(TrackSubtitleAudio(audoSrc));
         }
 
         private void InitText()

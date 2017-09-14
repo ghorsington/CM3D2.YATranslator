@@ -80,7 +80,6 @@ namespace CM3D2.YATranslator.Patch
             TypeDefinition freeSceneUi = assembly.MainModule.GetType("FreeScene_UI");
             TypeDefinition trophyUi = assembly.MainModule.GetType("Trophy_UI");
             TypeDefinition audioSrcMgr = assembly.MainModule.GetType("AudioSourceMgr");
-            TypeDefinition cultivationInv = assembly.MainModule.GetType("VRCultivationSeedInventory");
 
             MethodDefinition infoReplace = scheduleApi.GetMethod("InfoReplace");
             MethodDefinition onTranslateInfoText = hookType.GetMethod(nameof(TranslationHooks.OnTranslateInfoText));
@@ -137,17 +136,44 @@ namespace CM3D2.YATranslator.Patch
             MethodDefinition onLoadSound = hookType.GetMethod(nameof(TranslationHooks.OnPlaySound));
             loadPlay.InjectWith(onLoadSound, flags: InjectFlags.PassInvokingInstance);
 
+            ApplyMonkeyPatches(assembly, hookType);
+        }
+
+        private static void ApplyMonkeyPatches(AssemblyDefinition assembly, TypeDefinition hookType)
+        {
+            /** 
+             * VPVR Cultivation Patch
+             * CM3D2 Versions: 1.49+
+             * 
+             * Fixes VPVR's farming UI buttons breaking after being translated
+             */
+            TypeDefinition cultivationInv = assembly.MainModule.GetType("VRCultivationSeedInventory");
+
             MethodDefinition getSeedButton = cultivationInv.GetMethod("GetSeedButton");
             MethodDefinition onGetSeedButton = hookType.GetMethod(nameof(TranslationHooks.OnGetSeedButton));
             getSeedButton.InjectWith(onGetSeedButton,
                                      flags: InjectFlags.PassParametersVal
                                             | InjectFlags.ModifyReturn
                                             | InjectFlags.PassFields,
-                                     typeFields: new[] {cultivationInv.GetField("m_UIButtonPlantSeeds")});
+                                     typeFields: new[] { cultivationInv.GetField("m_UIButtonPlantSeeds") });
 
             MethodDefinition getSeedType = cultivationInv.GetMethod("GetSeedType");
             MethodDefinition onSystemTextTranslate = hookType.GetMethod(nameof(TranslationHooks.OnGetSeedType));
             getSeedType.InjectWith(onSystemTextTranslate, flags: InjectFlags.PassParametersRef);
+
+
+            /**
+             * Yotogi subtitle capture
+             * CM3D2 Versions: 1.00+
+             * 
+             * Captures Yotogi subtitles in-game and saves them into memory.
+             */
+            TypeDefinition yotogiKagManager = assembly.MainModule.GetType("YotogiKagManager");
+
+            MethodDefinition tagHitRet = yotogiKagManager.GetMethod("TagHitRet");
+            MethodDefinition onYotogiKagHitRet = hookType.GetMethod(nameof(TranslationHooks.OnYotogiKagHitRet));
+
+            tagHitRet.InjectWith(onYotogiKagHitRet, flags: InjectFlags.PassInvokingInstance);
         }
 
         private static void HookOnTextureLoaded(AssemblyDefinition assembly, MethodReference textureLoadedHook)

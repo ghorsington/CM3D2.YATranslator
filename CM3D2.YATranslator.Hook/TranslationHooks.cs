@@ -16,6 +16,7 @@ namespace CM3D2.YATranslator.Hook
         public static event EventHandler<StringTranslationEventArgs> TranslateText;
         public static event EventHandler<StringTranslationEventArgs> GetOppositePair;
         public static event EventHandler<StringTranslationEventArgs> GetOriginalText;
+        public static event EventHandler<StringTranslationEventArgs> YotogiKagSubtitleCaptured;
         public static event EventHandler<SoundEventArgs> PlaySound;
 
 
@@ -204,6 +205,16 @@ namespace CM3D2.YATranslator.Hook
             text = args.Translation;
             label.useFloatSpacing = false;
             label.spacingX = -1;
+        }
+
+        public static void OnYotogiKagHitRet(YotogiKagManager manager)
+        {
+            StringTranslationEventArgs args = new StringTranslationEventArgs
+            {
+                Text = manager.kag.GetText()
+            };
+            
+            YotogiKagSubtitleCaptured?.Invoke(null, args);
         }
     }
 }
