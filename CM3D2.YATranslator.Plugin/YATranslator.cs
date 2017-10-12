@@ -18,7 +18,7 @@ namespace CM3D2.YATranslator.Plugin
     [PluginName("Yet Another Translator")]
     public class YATranslator : PluginBase
     {
-        private const string TEMPLATE_STRING_PREFIX = "\u00a0";
+        private const string TEMPLATE_STRING_PREFIX = "\u200B";
 
         private string lastFoundAsset;
         private string lastFoundTexture;
@@ -62,19 +62,7 @@ namespace CM3D2.YATranslator.Plugin
             TranslationHooks.PlaySound += OnPlaySound;
             TranslationHooks.GetOppositePair += OnGetOppositePair;
             TranslationHooks.GetOriginalText += OnGetOriginalText;
-            TranslationHooks.YotogiKagSubtitleCaptured += OnYotogiSubtitleCapture;
             Logger.WriteLine("Translation::Hooking complete");
-        }
-
-        private void OnYotogiSubtitleCapture(object sender, StringTranslationEventArgs e)
-        {
-            if (string.IsNullOrEmpty(e.Text))
-                return;
-            string voiceFile = Subtitles.DisplayForLast(e.Text);
-            if (voiceFile == null)
-                return;
-            Logger.WriteLine(ResourceType.Strings, "Translation::Strings::Captured yotogi subtitle from script");
-            Logger.DumpLine($"{Subtitles.AUDIOCLIP_PREFIX}{voiceFile} {e.Text}", CurrentLevel);
         }
 
         public void OnLevelWasLoaded(int level)
@@ -96,9 +84,8 @@ namespace CM3D2.YATranslator.Plugin
                     Logger.WriteLine("Reloading translations");
                     Memory.LoadTranslations();
                     Memory.ActivateLevelTranslations(CurrentLevel, false);
-
-                    TranslateExisting();
                 }
+                TranslateExisting();
             }
         }
 
@@ -114,7 +101,9 @@ namespace CM3D2.YATranslator.Plugin
             TranslationHooks.PlaySound -= OnPlaySound;
             TranslationHooks.GetOppositePair -= OnGetOppositePair;
             TranslationHooks.GetOriginalText -= OnGetOriginalText;
-            TranslationHooks.YotogiKagSubtitleCaptured -= OnYotogiSubtitleCapture;
+
+            Destroy(Subtitles);
+            Destroy(Clipboard);
 
             Logger.Dispose();
         }
@@ -237,7 +226,7 @@ namespace CM3D2.YATranslator.Plugin
 
             if (inputText.StartsWith(TEMPLATE_STRING_PREFIX))
             {
-                e.Translation = inputText.Substring(TEMPLATE_STRING_PREFIX.Length);
+                e.Translation = inputText;
                 return;
             }
 
