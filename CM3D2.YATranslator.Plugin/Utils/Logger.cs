@@ -149,7 +149,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
 
         public static void WriteLine(LogLevel logLevel, string message)
         {
-            ConsoleColor oldColor = SafeConsole.BackgroundColor;
+            ConsoleColor oldColor = SafeConsole.ForegroundColor;
             SafeConsole.ForegroundColor = logLevel.Color;
             Console.WriteLine(message);
             SafeConsole.ForegroundColor = oldColor;
