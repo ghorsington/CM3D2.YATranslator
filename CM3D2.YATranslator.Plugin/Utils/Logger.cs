@@ -32,6 +32,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
 
     public static class Logger
     {
+        public const string TAG = "YATranslator";
         private static readonly HashSet<DumpType> AllowedDumpTypes;
         private static HashSet<string> cachedDumps;
         private const string DUMP_FILENAME = "TRANSLATION_DUMP";
@@ -151,7 +152,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
         {
             ConsoleColor oldColor = SafeConsole.ForegroundColor;
             SafeConsole.ForegroundColor = logLevel.Color;
-            Console.WriteLine(message);
+            Console.WriteLine($"{TAG}::{message}");
             SafeConsole.ForegroundColor = oldColor;
         }
 
@@ -178,8 +179,10 @@ namespace CM3D2.YATranslator.Plugin.Utils
             if (File.Exists(path))
                 return;
 
-            Texture2D tex = duplicate ? Duplicate(texture) : texture;
-            WriteLine($"Translation::Dumping {name}.png");
+            Texture2D tex = duplicate || texture.format == TextureFormat.DXT1 || texture.format == TextureFormat.DXT5
+                                ? Duplicate(texture)
+                                : texture;
+            WriteLine($"Dumping {name}.png");
             using (FileStream fs = File.Create(path))
             {
                 byte[] pngData = tex.EncodeToPNG();
@@ -201,7 +204,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
             if (File.Exists(path))
                 return;
 
-            WriteLine($"Translation::Dumping {name}.wav");
+            WriteLine($"Dumping {name}.wav");
 
             using (FileStream fs = File.Create(path))
             {
@@ -215,6 +218,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
 
         private static Texture2D Duplicate(Texture texture)
         {
+            WriteLine($"Duplicating texture {texture.name}");
             RenderTexture render = RenderTexture.GetTemporary(texture.width,
                                                               texture.height,
                                                               0,

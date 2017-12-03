@@ -42,7 +42,6 @@ namespace CM3D2.YATranslator.Plugin
             DontDestroyOnLoad(this);
 
             MethodInfo processAndRequestMethod = typeof(UILabel).GetMethod("ProcessAndRequest");
-
             processAndRequest = label => processAndRequestMethod.Invoke(label, null);
 
             Memory = new TranslationMemory(DataPath);
@@ -62,7 +61,7 @@ namespace CM3D2.YATranslator.Plugin
             TranslationHooks.PlaySound += OnPlaySound;
             TranslationHooks.GetOppositePair += OnGetOppositePair;
             TranslationHooks.GetOriginalText += OnGetOriginalText;
-            Logger.WriteLine("Translation::Hooking complete");
+            Logger.WriteLine("Hooking complete");
         }
 
         public void OnLevelWasLoaded(int level)
@@ -91,7 +90,7 @@ namespace CM3D2.YATranslator.Plugin
 
         public void OnDestroy()
         {
-            Logger.WriteLine("Translation::Removing hooks");
+            Logger.WriteLine("Removing hooks");
             TranslationHooks.TranslateText -= OnTranslateString;
             TranslationHooks.AssetTextureLoad -= OnAssetTextureLoad;
             TranslationHooks.ArcTextureLoad -= OnTextureLoad;
@@ -132,7 +131,7 @@ namespace CM3D2.YATranslator.Plugin
             if (!Settings.Subtitles.Enable || e.AudioSourceMgr.SoundType != AudioSourceMgr.Type.Voice)
                 return;
 
-            Logger.WriteLine(ResourceType.Voices, $"Translation::Voices {e.AudioSourceMgr.FileName}");
+            Logger.WriteLine(ResourceType.Voices, $"Voices {e.AudioSourceMgr.FileName}");
 
             Subtitles.DisplayFor(e.AudioSourceMgr);
         }
@@ -184,7 +183,7 @@ namespace CM3D2.YATranslator.Plugin
                 lastFoundAsset = e.Name;
                 Logger.WriteLine(ResourceType.Assets,
                                  LogLevel.Minor,
-                                 $"Translation::FindAsset::{e.Name} [{e.Meta}::{e.CompoundHash}]");
+                                 $"FindAsset::{e.Name} [{e.Meta}::{e.CompoundHash}]");
             }
 
             string[] namePossibilities =
@@ -200,7 +199,7 @@ namespace CM3D2.YATranslator.Plugin
                 if (lastFoundAsset != assetName)
                 {
                     lastFoundAsset = assetName;
-                    Logger.WriteLine(ResourceType.Assets, LogLevel.Minor, $"Translation::TryFindAsset::{assetName}");
+                    Logger.WriteLine(ResourceType.Assets, LogLevel.Minor, $"TryFindAsset::{assetName}");
                 }
 
                 string assetPath = Memory.GetAssetPath(assetName);
@@ -208,7 +207,7 @@ namespace CM3D2.YATranslator.Plugin
                 if (assetPath == null)
                     continue;
                 if (lastLoadedAsset != assetName)
-                    Logger.WriteLine(ResourceType.Assets, $"Translation::LoadAsset::{assetName}");
+                    Logger.WriteLine(ResourceType.Assets, $"LoadAsset::{assetName}");
                 lastLoadedAsset = assetName;
 
                 e.Data = new TextureResource(1, 1, TextureFormat.ARGB32, File.ReadAllBytes(assetPath));
@@ -264,7 +263,7 @@ namespace CM3D2.YATranslator.Plugin
             if (lastFoundTexture != textureName)
             {
                 lastFoundTexture = textureName;
-                Logger.WriteLine(ResourceType.Textures, LogLevel.Minor, $"Translation::FindTexture::{textureName}");
+                Logger.WriteLine(ResourceType.Textures, LogLevel.Minor, $"FindTexture::{textureName}");
             }
 
             string texturePath = Memory.GetTexturePath(textureName);
@@ -276,7 +275,7 @@ namespace CM3D2.YATranslator.Plugin
                 return;
             }
             if (lastLoadedTexture != textureName)
-                Logger.WriteLine(ResourceType.Textures, $"Translation::Texture::{textureName}");
+                Logger.WriteLine(ResourceType.Textures, $"Texture::{textureName}");
             lastLoadedTexture = textureName;
 
             e.Data = new TextureResource(1, 1, TextureFormat.ARGB32, File.ReadAllBytes(texturePath));

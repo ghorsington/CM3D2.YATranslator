@@ -121,10 +121,10 @@ namespace CM3D2.YATranslator.Plugin.Utils
             byte[] sampleRate = BitConverter.GetBytes(hz);
             fileStream.Write(sampleRate, 0, 4);
 
-            byte[] byteRate = 
-                BitConverter.GetBytes(hz
-                * channels
-                * 2); // sampleRate * bytesPerSample*number of channels, here 44100*2*2
+            byte[]
+                    byteRate = BitConverter.GetBytes(hz
+                                                     * channels
+                                                     * 2); // sampleRate * bytesPerSample*number of channels, here 44100*2*2
             fileStream.Write(byteRate, 0, 4);
 
             ushort blockAlign = (ushort) (channels * 2);

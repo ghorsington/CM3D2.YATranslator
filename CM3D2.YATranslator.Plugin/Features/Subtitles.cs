@@ -110,7 +110,7 @@ namespace CM3D2.YATranslator.Plugin.Features
             string voiceFile = DisplayForLast(e.Text);
             if (voiceFile == null)
                 return;
-            Logger.WriteLine(ResourceType.Strings, "Translation::Strings::Captured yotogi subtitle from script");
+            Logger.WriteLine(ResourceType.Strings, "Strings::Captured yotogi subtitle from script");
             Logger.DumpLine($"{AUDIOCLIP_PREFIX}{voiceFile} {e.Text}", CurrentLevel);
         }
 

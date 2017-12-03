@@ -75,8 +75,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
             loadedStringTranslations.Clear();
             TranslationsLoaded = false;
 
-            Logger.WriteLine(ResourceType.Strings,
-                             $"Translation::StringTranslations::Unloaded translations for level {Level}");
+            Logger.WriteLine(ResourceType.Strings, $"StringTranslations::Unloaded translations for level {Level}");
         }
 
         public bool LoadTranslations()
@@ -93,7 +92,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
 
             if (loadedValidTranslations)
                 Logger.WriteLine(ResourceType.Strings,
-                                 $"Translation::StringTranslations::Loaded {LoadedStringCount} Strings and {LoadedRegexCount} RegExes for level {Level}");
+                                 $"StringTranslations::Loaded {LoadedStringCount} Strings and {LoadedRegexCount} RegExes for level {Level}");
 
             return loadedValidTranslations;
         }
