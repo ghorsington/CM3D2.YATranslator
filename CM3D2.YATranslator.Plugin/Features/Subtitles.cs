@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using CM3D2.YATranslator.Hook;
 using CM3D2.YATranslator.Plugin.Utils;
 using UnityEngine;
@@ -14,15 +16,16 @@ namespace CM3D2.YATranslator.Plugin.Features
         private ManagedCoroutine currentAudioTracker = ManagedCoroutine.NoRoutine;
         private SubtitleConfiguration currentConfig;
         private bool hideAfterSound;
+        private bool isInVR;
         private AudioSource lastPlayed;
 
         private string lastPlayedName;
         private bool lastWasTranslated;
         private Outline outline;
+        private GameObject panel;
         private bool showUntranslatedText;
 
         private Text subtitleText;
-        private GameObject translationCanvas;
 
         public SubtitleConfiguration Configuration
         {
@@ -48,33 +51,13 @@ namespace CM3D2.YATranslator.Plugin.Features
             TranslationHooks.YotogiKagSubtitleCaptured += OnYotogiSubtitleCapture;
         }
 
+
         public void Start()
         {
-            translationCanvas = new GameObject("TranslationCanvas");
+            isInVR = Environment.GetCommandLineArgs().Any(s => s.ToLower().Contains("/vr"));
 
-            GameObject panel = new GameObject("Panel");
-            DontDestroyOnLoad(translationCanvas);
-            DontDestroyOnLoad(panel);
-
-            panel.transform.parent = translationCanvas.transform;
-
-            Canvas canvas = translationCanvas.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-
-            RectTransform rect = panel.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(0f, 0f);
-            rect.anchorMin = new Vector2(0f, 0f);
-            rect.anchorMax = new Vector2(1f, 1f);
-
-            outline = panel.AddComponent<Outline>();
-
-            subtitleText = panel.AddComponent<Text>();
-            subtitleText.transform.SetParent(panel.transform, false);
-            Font myFont = (Font) Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
-            subtitleText.font = myFont;
-            subtitleText.material = myFont.material;
-            subtitleText.text = string.Empty;
-            InitText();
+            if (!isInVR)
+                InitGUI();
         }
 
         public void DisplayFor(AudioSourceMgr mgr)
@@ -103,6 +86,66 @@ namespace CM3D2.YATranslator.Plugin.Features
             TrackAudio(mgr.audiosource);
         }
 
+        private void InitGUIVR()
+        {
+            if (panel != null)
+                return;
+
+            GameObject uiRoot = GameObject.Find("UI Root");
+
+            if (uiRoot == null)
+                return;
+
+            panel = new GameObject();
+            panel.transform.parent = uiRoot.transform;
+            panel.transform.localPosition = Vector3.zero;
+            panel.transform.localRotation = Quaternion.identity;
+            panel.transform.localScale = Vector3.one;
+            panel.layer = uiRoot.layer;
+
+            Canvas canvas = panel.AddComponent<Canvas>();
+            canvas.overrideSorting = true;
+            canvas.renderMode = RenderMode.WorldSpace;
+
+            RectTransform rect = panel.GetComponent<RectTransform>();
+            // TODO: Figure out how to obtain the value from the game itself
+            rect.sizeDelta = new Vector2(1920f, 1080f);
+
+            outline = panel.AddComponent<Outline>();
+
+            subtitleText = panel.AddComponent<Text>();
+            subtitleText.transform.SetParent(panel.transform, false);
+            Font myFont = (Font) Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
+            subtitleText.font = myFont;
+            subtitleText.material = myFont.material;
+            subtitleText.text = string.Empty;
+            InitText();
+        }
+
+        private void InitGUI()
+        {
+            panel = new GameObject("Panel");
+            DontDestroyOnLoad(panel);
+
+            Canvas canvas = panel.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
+            RectTransform rect = panel.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(0f, 0f);
+            rect.anchorMin = new Vector2(0f, 0f);
+            rect.anchorMax = new Vector2(1f, 1f);
+
+            outline = panel.AddComponent<Outline>();
+
+            subtitleText = panel.AddComponent<Text>();
+            subtitleText.transform.SetParent(panel.transform, false);
+            Font myFont = (Font) Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
+            subtitleText.font = myFont;
+            subtitleText.material = myFont.material;
+            subtitleText.text = string.Empty;
+            InitText();
+        }
+
         private void OnYotogiSubtitleCapture(object sender, StringTranslationEventArgs e)
         {
             if (string.IsNullOrEmpty(e.Text))
@@ -117,6 +160,8 @@ namespace CM3D2.YATranslator.Plugin.Features
         private void OnLevelWasLoaded(int level)
         {
             CurrentLevel = level;
+            if (isInVR)
+                InitGUIVR();
         }
 
         private void OnDestroy()
@@ -161,11 +206,11 @@ namespace CM3D2.YATranslator.Plugin.Features
             outline.effectDistance = new Vector2(currentConfig.OutlineThickness, currentConfig.OutlineThickness);
             outline.effectColor = currentConfig.TextOutlineColor;
 
-            subtitleText.fontSize = currentConfig.FontSize;
+            subtitleText.fontSize = isInVR ? currentConfig.FontSizeVR : currentConfig.FontSize;
             subtitleText.fontStyle = currentConfig.Style;
             subtitleText.material.color = currentConfig.Color;
             subtitleText.alignment = currentConfig.Alignment;
-            subtitleText.rectTransform.anchoredPosition = currentConfig.Offset;
+            subtitleText.rectTransform.anchoredPosition = isInVR ? currentConfig.OffsetVR : currentConfig.Offset;
         }
     }
 }

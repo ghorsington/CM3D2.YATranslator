@@ -35,6 +35,7 @@ namespace CM3D2.YATranslator.Plugin
 
         public bool Enable = true;
         public int FontSize = 20;
+        public int FontSizeVR = 50;
         public bool HideWhenClipStops = true;
         public bool Outline = true;
         public float OutlineThickness = 1.0f;
@@ -58,6 +59,8 @@ namespace CM3D2.YATranslator.Plugin
 
         public Vector2 Offset { get; private set; } = Vector2.zero;
 
+        public Vector2 OffsetVR { get; private set; } = Vector2.zero;
+
         public string OutlineColor
         {
             get => TextOutlineColor.ToString();
@@ -71,6 +74,12 @@ namespace CM3D2.YATranslator.Plugin
             get => Alignment.ToString();
 
             set => Alignment = Extensions.ParseEnum<TextAnchor>(value, true);
+        }
+
+        public string TextOffsetVR
+        {
+            get => OffsetVR.ToString();
+            set => OffsetVR = ParseVec2(value);
         }
 
         public string TextOffset
