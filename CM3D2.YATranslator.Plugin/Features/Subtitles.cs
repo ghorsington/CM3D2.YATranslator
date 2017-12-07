@@ -91,7 +91,7 @@ namespace CM3D2.YATranslator.Plugin.Features
             if (panel != null)
                 return;
 
-            GameObject uiRoot = GameObject.Find("UI Root");
+            GameObject uiRoot = GameObject.Find("SystemUI Root");
 
             if (uiRoot == null)
                 return;
@@ -139,6 +139,7 @@ namespace CM3D2.YATranslator.Plugin.Features
 
             subtitleText = panel.AddComponent<Text>();
             subtitleText.transform.SetParent(panel.transform, false);
+            subtitleText.transform.localPosition = new Vector3(0f, 0f, 10f);
             Font myFont = (Font) Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
             subtitleText.font = myFont;
             subtitleText.material = myFont.material;

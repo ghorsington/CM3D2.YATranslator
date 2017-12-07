@@ -266,19 +266,28 @@ namespace CM3D2.YATranslator.Plugin
                 Logger.WriteLine(ResourceType.Textures, LogLevel.Minor, $"FindTexture::{textureName}");
             }
 
-            string texturePath = Memory.GetTexturePath(textureName);
+            TextureReplacement replacement = Memory.GetTexture(textureName);
+            TextureResource resource = null;
 
-            if (texturePath == null)
+            switch (replacement.TextureType)
             {
-                if (e.OriginalTexture != null)
-                    Logger.DumpTexture(DumpType.TexSprites, textureName, e.OriginalTexture, true);
-                return;
+                case TextureType.PNG:
+                    resource = new TextureResource(1, 1, TextureFormat.ARGB32, File.ReadAllBytes(replacement.FilePath));
+                    break;
+                case TextureType.TEX:
+                    resource = TexUtils.ReadTexture(File.ReadAllBytes(replacement.FilePath), textureName);
+                    break;
+                case TextureType.None:
+                    if (e.OriginalTexture != null)
+                        Logger.DumpTexture(DumpType.TexSprites, textureName, e.OriginalTexture, true);
+                    return;
             }
+
             if (lastLoadedTexture != textureName)
                 Logger.WriteLine(ResourceType.Textures, $"Texture::{textureName}");
             lastLoadedTexture = textureName;
 
-            e.Data = new TextureResource(1, 1, TextureFormat.ARGB32, File.ReadAllBytes(texturePath));
+            e.Data = resource;
         }
 
         private void TranslateExisting()

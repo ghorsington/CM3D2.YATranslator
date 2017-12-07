@@ -25,7 +25,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
         private const string STRINGS_FOLDER = "Strings";
         private const string TEXTURES_FOLDER = "Textures";
         private readonly Dictionary<string, string> cachedAssetPaths;
-        private readonly Dictionary<string, string> cachedTexturePaths;
+        private readonly Dictionary<string, TextureReplacement> cachedTexturePaths;
         private readonly StringTranslations globalTranslations;
         private readonly Dictionary<int, StringTranslations> stringGroups;
         private readonly Dictionary<string, string> translatedStrings;
@@ -44,7 +44,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
             translatedStrings = new Dictionary<string, string>();
             cachedAssetPaths = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
             stringGroups = new Dictionary<int, StringTranslations>();
-            cachedTexturePaths = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+            cachedTexturePaths = new Dictionary<string, TextureReplacement>(StringComparer.InvariantCultureIgnoreCase);
             globalTranslations = new StringTranslations(-1);
         }
 
@@ -152,8 +152,10 @@ namespace CM3D2.YATranslator.Plugin.Translation
 
         public bool WasTranslated(string translation) => translatedStrings.ContainsKey(translation);
 
-        public string GetTexturePath(string name) =>
-                cachedTexturePaths.TryGetValue(name, out string path) ? path : null;
+        public TextureReplacement GetTexture(string name) =>
+                cachedTexturePaths.TryGetValue(name, out TextureReplacement replacement)
+                    ? replacement
+                    : TextureReplacement.None;
 
         public string GetAssetPath(string name) => cachedAssetPaths.TryGetValue(name, out string path) ? path : null;
 
@@ -189,11 +191,31 @@ namespace CM3D2.YATranslator.Plugin.Translation
         {
             cachedTexturePaths.Clear();
 
-            foreach (string path in Directory.GetFiles(texturesPath, "*.png", SearchOption.AllDirectories))
+            foreach (string path in Directory.GetFiles(texturesPath, "*.*", SearchOption.AllDirectories))
             {
                 string fileName = Path.GetFileNameWithoutExtension(path);
+                string ext = Path.GetExtension(path)?.Substring(1);
+
+                TextureType type;
+
+                try
+                {
+                    type = (TextureType) Enum.Parse(typeof(TextureType), ext, true);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+
+                if (cachedTexturePaths.TryGetValue(fileName, out TextureReplacement replacement))
+                {
+                    Logger.WriteLine(LogLevel.Warning,
+                                     $"Found a duplicate of {fileName} in `Textures` folder. Going to use {fileName}.{replacement.TextureType}.");
+                    return;
+                }
+
                 Logger.WriteLine(ResourceType.Textures, $"CacheTexture::{fileName}");
-                cachedTexturePaths.AddOrSet(fileName, path);
+                cachedTexturePaths.AddOrSet(fileName, new TextureReplacement(type, path));
             }
             Logger.WriteLine($"CacheTexture::Cached '{cachedTexturePaths.Count}' Textures");
         }
