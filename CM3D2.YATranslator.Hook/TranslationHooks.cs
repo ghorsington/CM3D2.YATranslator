@@ -169,9 +169,14 @@ namespace CM3D2.YATranslator.Hook
                 return;
 
             string textureName = texture2D.name;
-            bool previouslyTranslated;
-            if (string.IsNullOrEmpty(textureName) || (previouslyTranslated = textureName.StartsWith("!")) && !force)
+            if (string.IsNullOrEmpty(textureName))
                 return;
+            if (textureName.StartsWith("!"))
+            {
+                if (!force)
+                    return;
+                texture2D.name = texture2D.name.Substring(1);
+            }
 
             TextureTranslationEventArgs args = new TextureTranslationEventArgs(textureName, im.name)
             {
@@ -183,8 +188,7 @@ namespace CM3D2.YATranslator.Hook
             if (args.Data == null)
                 return;
 
-            if (!previouslyTranslated)
-                texture2D.name = "!" + textureName;
+            texture2D.name = "!" + textureName;
             texture2D.LoadImage(EmptyTextureData);
             texture2D.LoadImage(args.Data.data);
         }

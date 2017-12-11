@@ -214,7 +214,7 @@ namespace CM3D2.YATranslator.Plugin
                 return;
             }
 
-            Logger.DumpTexture(DumpType.Assets, e.Name, e.OriginalTexture, true);
+            Logger.DumpTexture(DumpType.Assets, $"{e.Name}_{e.CompoundHash}", e.OriginalTexture, true);
         }
 
         private void OnTranslateString(object sender, StringTranslationEventArgs e)
