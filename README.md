@@ -3,8 +3,8 @@
 As the name implies, this is a translation loader plug-in for CM3D2.
 Use it to replace in-game strings, textures and assets.
 
-> Yet Another Translator is a replacement for Unified Translation Plug-in and TranslationPlus.
-> You **must** remove them before installing Yet Another Translator. You can leave the translation assets.
+> Yet Another Translator is a replacement for Unified Translation Plug-in and TranslationPlus.  
+> You **must** remove them before installing Yet Another Translator. You can leave the translation assets.  
 > More information in the [installation guide](https://github.com/denikson/CM3D2.YATranslator/wiki/Installation).
 
 ### [Download the latest release](https://github.com/denikson/CM3D2.YATranslator/releases)
