@@ -20,6 +20,8 @@ namespace CM3D2.YATranslator.Plugin
     {
         private const string TEMPLATE_STRING_PREFIX = "\u200B";
 
+        private bool isRetranslating;
+
         private string lastFoundAsset;
         private string lastFoundTexture;
         private string lastLoadedAsset;
@@ -42,7 +44,7 @@ namespace CM3D2.YATranslator.Plugin
             DontDestroyOnLoad(this);
 
             MethodInfo processAndRequestMethod = typeof(UILabel).GetMethod("ProcessAndRequest");
-            processAndRequest = label => processAndRequestMethod.Invoke(label, null);
+            processAndRequest = label => processAndRequestMethod?.Invoke(label, null);
 
             Memory = new TranslationMemory(DataPath);
             Clipboard = gameObject.AddComponent<Clipboard>();
@@ -225,8 +227,12 @@ namespace CM3D2.YATranslator.Plugin
 
             if (inputText.StartsWith(TEMPLATE_STRING_PREFIX))
             {
-                e.Translation = inputText;
-                return;
+                if (!isRetranslating)
+                {
+                    e.Translation = inputText;
+                    return;
+                }
+                inputText = inputText.Substring(1);
             }
 
             bool isAudioClipName = inputText.StartsWith(Subtitles.AUDIOCLIP_PREFIX);
@@ -235,7 +241,7 @@ namespace CM3D2.YATranslator.Plugin
 
             e.Translation = Memory.GetTextTranslation(inputText);
 
-            if (e.Type == StringType.Template && e.Translation != null)
+            if ((e.Type == StringType.Template || isRetranslating) && e.Translation != null)
             {
                 e.Translation = TEMPLATE_STRING_PREFIX + e.Translation;
                 return;
@@ -293,6 +299,7 @@ namespace CM3D2.YATranslator.Plugin
 
         private void TranslateExisting()
         {
+            isRetranslating = true;
             HashSet<string> processedTextures = new HashSet<string>();
             foreach (UIWidget widget in FindObjectsOfType<UIWidget>())
                 if (widget is UILabel label)
@@ -305,6 +312,7 @@ namespace CM3D2.YATranslator.Plugin
                     processedTextures.Add(texName);
                     TranslationHooks.OnAssetTextureLoad(1, widget);
                 }
+            isRetranslating = false;
 
             foreach (MaskableGraphic graphic in FindObjectsOfType<MaskableGraphic>())
             {

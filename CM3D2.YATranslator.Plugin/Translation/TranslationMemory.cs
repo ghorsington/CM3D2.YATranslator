@@ -99,10 +99,10 @@ namespace CM3D2.YATranslator.Plugin.Translation
 
         public string GetTextTranslation(string original)
         {
-            string Translate(string text)
+            string Translate(string text, string from)
             {
-                Logger.WriteLine(ResourceType.Strings, $"String::'{original}'->'{text}'");
-                translatedStrings.AddIfNotPresent(text, original);
+                Logger.WriteLine(ResourceType.Strings, $"String::'{from}'->'{text}'");
+                translatedStrings[text] = from;
                 return text;
             }
 
@@ -139,10 +139,10 @@ namespace CM3D2.YATranslator.Plugin.Translation
             }
 
             if (first != null && first.TryTranslate(untranslated, out string translation))
-                return Translate(translation);
+                return Translate(translation, untranslated);
 
             if (second != null && second.TryTranslate(untranslated, out string globalTranslation))
-                return Translate(globalTranslation);
+                return Translate(globalTranslation, untranslated);
 
             return null;
         }
