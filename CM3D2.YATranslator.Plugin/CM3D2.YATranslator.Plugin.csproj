@@ -57,6 +57,7 @@
     <Compile Include="Translation\TextureReplacement.cs" />
     <Compile Include="Translation\TranslationMemory.cs" />
     <Compile Include="Utils\ConfigurationLoader.cs" />
+    <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="Utils\ManagedCoroutine.cs" />
     <Compile Include="Utils\Extensions.cs" />
     <Compile Include="Utils\Logger.cs" />

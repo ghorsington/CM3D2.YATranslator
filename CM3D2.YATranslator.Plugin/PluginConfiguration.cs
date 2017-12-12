@@ -119,6 +119,9 @@ namespace CM3D2.YATranslator.Plugin
     [ConfigSection("Config")]
     public class PluginConfiguration
     {
+        private readonly Regex parameterReplacementRegex = new Regex("{([^}]*)}");
+        private readonly string[] texTemplateVariables = {"NAME", "HASH", "METADATA", "LEVEL"};
+
         public bool EnableStringReload = false;
 
         public int[] AllowedDumpLevels { get; private set; } = {-1};
@@ -178,6 +181,26 @@ namespace CM3D2.YATranslator.Plugin
 
         public MemoryOptimizations OptimizationFlags { get; private set; } = Translation.MemoryOptimizations.None;
         public SubtitleConfiguration Subtitles { get; set; } = new SubtitleConfiguration();
+
+        public string TextureNameTemplate
+        {
+            get => "{NAME}";
+            set
+            {
+                string name = value.Trim();
+                if (string.IsNullOrEmpty(name) || !FileUtils.IsValidFilename(name))
+                    throw new ArgumentException("Invalid file name");
+                name = parameterReplacementRegex.Replace(name,
+                                                         m =>
+                                                         {
+                                                             string template = m.Groups[1].Value;
+                                                             int i = Array.IndexOf(texTemplateVariables,
+                                                                                   template.Trim().ToUpper());
+                                                             return i < 0 ? m.Value : $"{{{i.ToString()}}}";
+                                                         });
+                Logger.TextureNameTemplate = name;
+            }
+        }
 
         public string Verbosity
         {

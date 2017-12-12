@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using CM3D2.YATranslator.Hook;
 using UnityEngine;
 using UnityInjector.ConsoleUtil;
 
@@ -33,6 +34,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
     public static class Logger
     {
         public const string TAG = "YATranslator";
+        public static string TextureNameTemplate = "{0}";
         private static readonly HashSet<int> AllowedDumpLevels;
         private static readonly HashSet<DumpType> AllowedDumpTypes;
         private static HashSet<string> cachedDumps;
@@ -184,28 +186,31 @@ namespace CM3D2.YATranslator.Plugin.Utils
             WriteLine(LogLevel.Normal, message);
         }
 
-        public static void DumpTexture(DumpType dumpType, string name, Texture2D texture, bool duplicate, int level)
+        public static void DumpTexture(DumpType dumpType, TextureTranslationEventArgs args, bool duplicate, int level)
         {
+            Texture2D texture = args.OriginalTexture ?? args.Data.CreateTexture2D();
             if (!CanDump(dumpType) || texture == null || !InitDump())
                 return;
             if (!dumpAllLevels && !AllowedDumpLevels.Contains(level))
                 return;
 
-            if (cachedDumps.Contains(name))
+            if (cachedDumps.Contains(args.Name))
                 return;
-            cachedDumps.Add(name);
+            cachedDumps.Add(args.Name);
 
-            if (name.StartsWith("!"))
+            if (args.Name.StartsWith("!"))
                 return;
 
-            string path = Path.Combine(GetDumpFolderName(dumpType), $"{name}.png");
+            string fileName = string.Format(TextureNameTemplate, args.Name, args.CompoundHash, args.Meta, level);
+
+            string path = Path.Combine(GetDumpFolderName(dumpType), $"{fileName}.png");
             if (File.Exists(path))
                 return;
 
             Texture2D tex = duplicate || texture.format == TextureFormat.DXT1 || texture.format == TextureFormat.DXT5
                                 ? Duplicate(texture)
                                 : texture;
-            WriteLine($"Dumping {name}.png");
+            WriteLine($"Dumping {fileName}.png");
             using (FileStream fs = File.Create(path))
             {
                 byte[] pngData = tex.EncodeToPNG();
