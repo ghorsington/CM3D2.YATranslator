@@ -1,10 +1,32 @@
 # Yet Another Translator for CM3D2
 
-As the name implies, this is a translation plug-in for CM3D2.
-Use it to translate in-game strings, textures and assets.
+As the name implies, this is a translation loader plug-in for CM3D2.
+Use it to replace in-game strings, textures and assets.
+
+> Yet Another Translator is a replacement for Unified Translation Plug-in and TranslationPlus.
+> You **must** remove them before installing Yet Another Translator. You can leave the translation assets.
+> More information in the [installation guide](https://github.com/denikson/CM3D2.YATranslator/wiki/Installation).
 
 ### [Download the latest release](https://github.com/denikson/CM3D2.YATranslator/releases)
 ### [View the wiki for help](https://github.com/denikson/CM3D2.YATranslator/wiki)
+
+## Main features
+
+* Patchers for Sybaris and ReiPatcher
+* String and asset replacing (pretty much the same)
+* **Supports old assets** from previous translation loaders.
+* **Fixed** texture replacing
+* **CM3D2 VPVR support**
+  * All strings translateable, all main UI elements replaceable
+* **Tagged translations** (the one containing `[HF]`, etc.) no longer require RegExes
+    * This fixed some tagged translations not working (like the ones ending with `...?`)
+    * Text scrolling effect now works with translations
+* **Logging and dumping** is improved
+  * You can log different asset translation separately
+  * Can dump untranslated assets and textures
+* **Subtitle** support
+* **Text-to-clipboard** supported internally
+* **VR mode support**: subtitles are visible with head-mounted displays
 
 ## Why another translation plug-in?
 
@@ -20,23 +42,6 @@ However, neither are
 Thus this plug-in was written from scratch while maintaining similar functionality and public API.
 Moreover, this plug-in was made solely with CM3D2 in mind, which allowed to simplify some code
 and remove some unneeded quirks.
-
-## Main features
-
-* Patchers for Sybaris and ReiPatcher (for those "legacy" users)
-* String and asset replacing (pretty much the same)
-* **Fixed** texture replacing
-* **CM3D2 VPVR support**
-  * All strings translateable, all main UI elements replaceable
-* **Tagged translations** (the one containing `[HF]`, etc.) no longer require RegExes
-    * This fixed some tagged translations not working (like the ones ending with `...?`)
-    * Text scrolling effect now works with translations
-* **Logging and dumping** is improved
-  * You can log different asset translation separately
-  * Can dump untranslated assets and textures
-* **Subtitle** support
-* **Text-to-clipboard** supported internally
-
 
 ## Building
 
