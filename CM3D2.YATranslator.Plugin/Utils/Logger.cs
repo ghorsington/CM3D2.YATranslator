@@ -33,9 +33,11 @@ namespace CM3D2.YATranslator.Plugin.Utils
     public static class Logger
     {
         public const string TAG = "YATranslator";
+        private static readonly HashSet<int> AllowedDumpLevels;
         private static readonly HashSet<DumpType> AllowedDumpTypes;
         private static HashSet<string> cachedDumps;
         private const string DUMP_FILENAME = "TRANSLATION_DUMP";
+        private static bool dumpAllLevels;
         private static bool dumpFileLoaded;
 
         private static readonly string[] DumpFolderNames =
@@ -52,9 +54,28 @@ namespace CM3D2.YATranslator.Plugin.Utils
         static Logger()
         {
             AllowedDumpTypes = new HashSet<DumpType>();
+            AllowedDumpLevels = new HashSet<int>();
         }
 
         public static bool DumpEnabled => AllowedDumpTypes.Count != 0 && !string.IsNullOrEmpty(DumpPath);
+
+        public static int[] DumpLevels
+        {
+            set
+            {
+                AllowedDumpLevels.Clear();
+                dumpAllLevels = false;
+                foreach (int level in value)
+                {
+                    if (level == -1)
+                    {
+                        dumpAllLevels = true;
+                        return;
+                    }
+                    AllowedDumpLevels.Add(level);
+                }
+            }
+        }
 
         public static string DumpPath { get; set; }
 
@@ -125,6 +146,8 @@ namespace CM3D2.YATranslator.Plugin.Utils
         {
             if (!CanDump(dumpType) || !InitDump())
                 return;
+            if (!dumpAllLevels && !AllowedDumpLevels.Contains(level))
+                return;
             if (cachedDumps.Contains(line))
                 return;
             cachedDumps.Add(line);
@@ -161,11 +184,11 @@ namespace CM3D2.YATranslator.Plugin.Utils
             WriteLine(LogLevel.Normal, message);
         }
 
-        public static void DumpTexture(DumpType dumpType, string name, Texture2D texture, bool duplicate)
+        public static void DumpTexture(DumpType dumpType, string name, Texture2D texture, bool duplicate, int level)
         {
-            if (!CanDump(dumpType) || texture == null)
+            if (!CanDump(dumpType) || texture == null || !InitDump())
                 return;
-            if (!InitDump())
+            if (!dumpAllLevels && !AllowedDumpLevels.Contains(level))
                 return;
 
             if (cachedDumps.Contains(name))
@@ -191,9 +214,11 @@ namespace CM3D2.YATranslator.Plugin.Utils
             }
         }
 
-        public static void DumpVoice(string name, AudioClip clip)
+        public static void DumpVoice(string name, AudioClip clip, int level)
         {
             if (!CanDump(DumpType.Voices) || clip == null || !InitDump())
+                return;
+            if (!dumpAllLevels && !AllowedDumpLevels.Contains(level))
                 return;
 
             if (cachedDumps.Contains(name))

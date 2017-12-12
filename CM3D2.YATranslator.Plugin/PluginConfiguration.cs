@@ -120,6 +120,9 @@ namespace CM3D2.YATranslator.Plugin
     public class PluginConfiguration
     {
         public bool EnableStringReload = false;
+
+        public int[] AllowedDumpLevels { get; private set; } = {-1};
+
         public ClipboardConfiguration Clipboard { get; set; } = new ClipboardConfiguration();
 
         public string Dump
@@ -132,6 +135,17 @@ namespace CM3D2.YATranslator.Plugin
 
                 DumpTypes = parts.Select(str => (DumpType) Enum.Parse(typeof(DumpType), str.Trim(), true)).ToArray();
                 Logger.DumpTypes = DumpTypes;
+            }
+        }
+
+        public string DumpLevels
+        {
+            get => "-1";
+            set
+            {
+                AllowedDumpLevels = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)
+                                         .ToArray();
+                Logger.DumpLevels = AllowedDumpLevels;
             }
         }
 

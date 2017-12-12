@@ -78,7 +78,7 @@ namespace CM3D2.YATranslator.Plugin.Features
                 if (!showUntranslatedText)
                     subtitleText.text = string.Empty;
 
-                Logger.DumpVoice(soundName, mgr.audiosource.clip);
+                Logger.DumpVoice(soundName, mgr.audiosource.clip, CurrentLevel);
             }
             else
                 lastWasTranslated = true;

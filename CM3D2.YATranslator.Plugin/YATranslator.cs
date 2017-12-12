@@ -173,7 +173,7 @@ namespace CM3D2.YATranslator.Plugin
         private void OnArcTextureLoaded(object sender, TextureTranslationEventArgs e)
         {
             if (Logger.CanDump(DumpType.Textures))
-                Logger.DumpTexture(DumpType.Textures, e.Name, e.Data.CreateTexture2D(), false);
+                Logger.DumpTexture(DumpType.Textures, e.Name, e.Data.CreateTexture2D(), false, CurrentLevel);
         }
 
         private void OnAssetTextureLoad(object sender, TextureTranslationEventArgs e)
@@ -214,7 +214,7 @@ namespace CM3D2.YATranslator.Plugin
                 return;
             }
 
-            Logger.DumpTexture(DumpType.Assets, $"{e.Name}_{e.CompoundHash}", e.OriginalTexture, true);
+            Logger.DumpTexture(DumpType.Assets, $"{e.Name}_{e.CompoundHash}", e.OriginalTexture, true, CurrentLevel);
         }
 
         private void OnTranslateString(object sender, StringTranslationEventArgs e)
@@ -278,8 +278,9 @@ namespace CM3D2.YATranslator.Plugin
                     resource = TexUtils.ReadTexture(File.ReadAllBytes(replacement.FilePath), textureName);
                     break;
                 case TextureType.None:
+                default:
                     if (e.OriginalTexture != null)
-                        Logger.DumpTexture(DumpType.TexSprites, textureName, e.OriginalTexture, true);
+                        Logger.DumpTexture(DumpType.TexSprites, textureName, e.OriginalTexture, true, CurrentLevel);
                     return;
             }
 
