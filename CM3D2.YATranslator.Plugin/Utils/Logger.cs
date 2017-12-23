@@ -150,6 +150,8 @@ namespace CM3D2.YATranslator.Plugin.Utils
                 return;
             if (!dumpAllLevels && !AllowedDumpLevels.Contains(level))
                 return;
+            if (dumpType == DumpType.Strings)
+                line = line.Replace("\n", "").Trim().Escape();
             if (cachedDumps.Contains(line))
                 return;
             cachedDumps.Add(line);
