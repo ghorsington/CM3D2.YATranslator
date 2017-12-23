@@ -53,6 +53,7 @@
     <Compile Include="Features\Clipboard.cs" />
     <Compile Include="PluginConfiguration.cs" />
     <Compile Include="Features\Subtitles.cs" />
+    <Compile Include="Translation\TextTranslation.cs" />
     <Compile Include="Translation\StringTranslations.cs" />
     <Compile Include="Translation\TextureReplacement.cs" />
     <Compile Include="Translation\TranslationMemory.cs" />

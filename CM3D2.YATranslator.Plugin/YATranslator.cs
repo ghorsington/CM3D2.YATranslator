@@ -123,9 +123,7 @@ namespace CM3D2.YATranslator.Plugin
             string text = e.Text;
             if (string.IsNullOrEmpty(text))
                 return;
-            e.Translation = Memory.TryGetOriginal(text, out string original)
-                                ? original
-                                : Memory.GetTextTranslation(text);
+            e.Translation = Memory.TryGetOriginal(text, out string original) ? original : Memory.GetTextTranslation(text).Text;
         }
 
         private void OnPlaySound(object sender, SoundEventArgs e)
@@ -183,17 +181,13 @@ namespace CM3D2.YATranslator.Plugin
             if (lastFoundAsset != e.Name)
             {
                 lastFoundAsset = e.Name;
-                Logger.WriteLine(ResourceType.Assets,
-                                 LogLevel.Minor,
-                                 $"FindAsset::{e.Name} [{e.Meta}::{e.CompoundHash}]");
+                Logger.WriteLine(ResourceType.Assets, LogLevel.Minor, $"FindAsset::{e.Name} [{e.Meta}::{e.CompoundHash}]");
             }
 
             string[] namePossibilities =
             {
-                e.CompoundHash + "@" + SceneManager.GetActiveScene().buildIndex,
-                e.Name + "@" + SceneManager.GetActiveScene().buildIndex,
-                e.CompoundHash,
-                e.Name
+                e.CompoundHash + "@" + SceneManager.GetActiveScene().buildIndex, e.Name + "@" + SceneManager.GetActiveScene().buildIndex,
+                e.CompoundHash, e.Name
             };
 
             foreach (string assetName in namePossibilities)
@@ -239,7 +233,10 @@ namespace CM3D2.YATranslator.Plugin
             if (isAudioClipName)
                 inputText = inputText.Substring(Subtitles.AUDIOCLIP_PREFIX.Length);
 
-            e.Translation = Memory.GetTextTranslation(inputText);
+            TextTranslation translation = Memory.GetTextTranslation(inputText);
+
+            if (translation.Result == TranslationResult.Ok || isRetranslating && translation.Result == TranslationResult.NotFound)
+                e.Translation = translation.Text;
 
             if ((e.Type == StringType.Template || isRetranslating) && e.Translation != null)
             {
@@ -247,7 +244,7 @@ namespace CM3D2.YATranslator.Plugin
                 return;
             }
 
-            if (Memory.WasTranslated(e.Translation ?? inputText))
+            if (translation.Result == TranslationResult.Ok || translation.Result == TranslationResult.Translated)
                 return;
 
             if (!isAudioClipName)
@@ -303,7 +300,9 @@ namespace CM3D2.YATranslator.Plugin
             HashSet<string> processedTextures = new HashSet<string>();
             foreach (UIWidget widget in FindObjectsOfType<UIWidget>())
                 if (widget is UILabel label)
+                {
                     processAndRequest(label);
+                }
                 else
                 {
                     string texName = widget.mainTexture?.name;

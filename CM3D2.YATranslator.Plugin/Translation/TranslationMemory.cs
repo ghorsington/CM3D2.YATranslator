@@ -97,7 +97,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
             ActivateStringTranslations(level);
         }
 
-        public string GetTextTranslation(string original)
+        public TextTranslation GetTextTranslation(string original)
         {
             string Translate(string text, string from)
             {
@@ -105,6 +105,11 @@ namespace CM3D2.YATranslator.Plugin.Translation
                 translatedStrings[text] = from;
                 return text;
             }
+
+            TextTranslation result = new TextTranslation
+            {
+                Result = TranslationResult.Ok
+            };
 
             bool wasTranslated = translatedStrings.ContainsKey(original);
             string untranslated = original;
@@ -115,14 +120,19 @@ namespace CM3D2.YATranslator.Plugin.Translation
                 Logger.WriteLine(ResourceType.Strings,
                                  LogLevel.Minor,
                                  $"String::Skip {original} (is already translated)");
-                return null;
+                result.Result = TranslationResult.Translated;
+                return result;
             }
-            untranslated = untranslated.Replace("\n", "").Trim();
+            result.Text = untranslated;
+            string input = untranslated.Replace("\n", "").Trim();
 
             Logger.WriteLine(ResourceType.Strings, LogLevel.Minor, $"FindString::{untranslated}");
 
-            if (string.IsNullOrEmpty(untranslated))
-                return null;
+            if (string.IsNullOrEmpty(input))
+            {
+                result.Result = TranslationResult.NotFound;
+                return result;
+            }
 
             StringTranslations first, second;
             if (IsOptimizationEnabled(MemoryOptimizations.LoadOnTranslate)
@@ -138,13 +148,15 @@ namespace CM3D2.YATranslator.Plugin.Translation
                 second = globalTranslations;
             }
 
-            if (first != null && first.TryTranslate(untranslated, out string translation))
-                return Translate(translation, untranslated);
+            if (first != null && first.TryTranslate(input, out string translation))
+                result.Text = Translate(translation, untranslated);
+            else if (second != null && second.TryTranslate(input, out string globalTranslation))
+                result.Text = Translate(globalTranslation, untranslated);
+            else
+                result.Result = TranslationResult.NotFound;
 
-            if (second != null && second.TryTranslate(untranslated, out string globalTranslation))
-                return Translate(globalTranslation, untranslated);
 
-            return null;
+            return result;
         }
 
         public bool TryGetOriginal(string translation, out string original) =>
