@@ -13,7 +13,9 @@ sections:
   - id: "help"
     name: "Help"
     contents_file: "help_section.md"
-documentation_url: "https://github.com/denikson/CM3D2.YATranslator/wiki"
+buttons:
+  - name: "Wiki"
+    href: "https://github.com/denikson/CM3D2.YATranslator/wiki"
 ---
 
 **Y**et **A**nother **T**ranslator is a translation loader for CM3D2.
