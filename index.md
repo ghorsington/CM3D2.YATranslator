@@ -14,7 +14,7 @@ sections:
     name: "Help"
     contents_file: "help_section.md"
 buttons:
-  - name: "Wiki"
+  - name: "View Wiki"
     href: "https://github.com/denikson/CM3D2.YATranslator/wiki"
 ---
 
@@ -33,7 +33,7 @@ The plug-in provides a faster, open-sourced alternative to other translations lo
   }
 </style>
 
-<table class="table table-striped table-bordered  ">
+<table class="table table-striped table-bordered table-responsive-sm">
   <thead>
     <tr>
       <th scope="col">Feature / Translation Loader</th>
