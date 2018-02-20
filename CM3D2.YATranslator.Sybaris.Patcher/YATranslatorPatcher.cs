@@ -86,9 +86,19 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
             MethodDefinition loadTextureTarget = importCm.GetMethod("LoadTexture");
             MethodDefinition onArcTextureLoadHook = hookType.GetMethod(nameof(TranslationHooks.OnArcTextureLoad));
             MethodDefinition onArcTextureLoadedHook = hookType.GetMethod(nameof(TranslationHooks.OnArcTextureLoaded));
-            loadTextureTarget.InjectWith(onArcTextureLoadHook,
-                                         flags: InjectFlags.PassParametersVal | InjectFlags.ModifyReturn);
-            HookOnTextureLoaded(assembly, onArcTextureLoadedHook);
+            try
+            {
+                loadTextureTarget.InjectWith(onArcTextureLoadHook,
+                                             flags: InjectFlags.PassParametersVal | InjectFlags.ModifyReturn);
+                HookOnTextureLoaded(assembly, onArcTextureLoadedHook);
+            }
+            catch (Exception)
+            {
+                onArcTextureLoadHook = hookType.GetMethod(nameof(TranslationHooks.OnArcTextureLoadEx));
+                loadTextureTarget.InjectWith(onArcTextureLoadHook,
+                                             flags: InjectFlags.PassParametersVal | InjectFlags.ModifyReturn);
+                HookOnTextureLoaded(assembly, onArcTextureLoadedHook, 1);
+            }
 
             MethodDefinition onTranslateTextHook = hookType.GetMethod(nameof(TranslationHooks.OnTranslateText));
             MethodDefinition processAndRequestTarget = uiLabel.GetMethod("ProcessAndRequest");
@@ -166,13 +176,13 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
             tagHitRet.InjectWith(onYotogiKagHitRet, flags: InjectFlags.PassInvokingInstance);
         }
 
-        private static void HookOnTextureLoaded(AssemblyDefinition assembly, MethodReference textureLoadedHook)
+        private static void HookOnTextureLoaded(AssemblyDefinition assembly, MethodReference textureLoadedHook, int arg = 0)
         {
             TypeDefinition importCm = assembly.MainModule.GetType("ImportCM");
             MethodDefinition loadTextureTarget = importCm.GetMethod("LoadTexture");
             Instruction retInstruction = loadTextureTarget.Body.Instructions.Last();
             ILProcessor il = loadTextureTarget.Body.GetILProcessor();
-            il.InsertBefore(retInstruction, il.Create(OpCodes.Ldarg_0));
+            il.InsertBefore(retInstruction, il.Create(OpCodes.Ldarg, arg));
             il.InsertBefore(retInstruction, il.Create(OpCodes.Callvirt, assembly.MainModule.Import(textureLoadedHook)));
         }
     }

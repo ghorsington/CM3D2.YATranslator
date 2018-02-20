@@ -161,6 +161,9 @@ namespace CM3D2.YATranslator.Hook
             return args.Data != null;
         }
 
+        public static bool OnArcTextureLoadEx(out TextureResource result, AFileSystemBase fileSystem, string name) =>
+                OnArcTextureLoad(out result, name);
+
         public static void OnAssetTextureLoad(int forceTag, UIWidget im)
         {
             bool force = forceTag != 0;
