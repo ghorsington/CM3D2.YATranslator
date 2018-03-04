@@ -70,7 +70,7 @@ namespace CM3D2.YATranslator.Plugin
         {
             CurrentLevel = level;
             Memory.ActivateLevelTranslations(level);
-            TranslateExisting();
+            TranslateExisting(true);
         }
 
         public void Update()
@@ -294,9 +294,9 @@ namespace CM3D2.YATranslator.Plugin
             e.Data = resource;
         }
 
-        private void TranslateExisting()
+        private void TranslateExisting(bool levelChanged = false)
         {
-            isRetranslating = true;
+            isRetranslating = !levelChanged && Settings.EnableStringReload;
             HashSet<string> processedTextures = new HashSet<string>();
             foreach (UIWidget widget in FindObjectsOfType<UIWidget>())
                 if (widget is UILabel label)
