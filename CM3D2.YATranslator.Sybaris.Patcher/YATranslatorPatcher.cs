@@ -22,7 +22,7 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
                     {"UnityEngine.UI", PatchUi}
                 };
 
-        private const string SYBARIS_MANAGED_DIR = @"..\Plugins\Managed";
+        private const string SYBARIS_MANAGED_DIR = @".";
 
         public static void Patch(AssemblyDefinition assembly)
         {
