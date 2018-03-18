@@ -99,9 +99,19 @@ namespace CM3D2.YATranslator.Plugin.Translation
 
         private bool LoadFromFile(string filePath)
         {
-            IEnumerable<string> translationLines = File.ReadAllLines(filePath, Encoding.UTF8).Select(m => m.Trim())
-                                                       .Where(m => !m.StartsWith(";",
-                                                                                 StringComparison.CurrentCulture));
+            IEnumerable<string> translationLines;
+            try
+            {
+                translationLines = File.ReadAllLines(filePath, Encoding.UTF8).Select(m => m.Trim())
+                                       .Where(m => !m.StartsWith(";", StringComparison.CurrentCulture));
+            }
+            catch (IOException ioe)
+            {
+                Logger.WriteLine(LogLevel.Warning,
+                                 $"Failed to load {filePath} because {ioe.Message}. Skipping file...");
+                return false;
+            }
+
             int translated = 0;
             foreach (string translationLine in translationLines)
             {
