@@ -238,7 +238,7 @@ namespace CM3D2.YATranslator.Plugin
             if (translation.Result == TranslationResult.Ok || isRetranslating && translation.Result == TranslationResult.NotFound)
                 e.Translation = translation.Text;
 
-            if ((e.Type == StringType.Template || isRetranslating) && e.Translation != null)
+            if (e.Type == StringType.Template && e.Translation != null)
             {
                 e.Translation = TEMPLATE_STRING_PREFIX + e.Translation;
                 return;
