@@ -249,7 +249,9 @@ namespace CM3D2.YATranslator.Plugin
 
             if (!isAudioClipName)
             {
-                Clipboard.AddText(inputText, CurrentLevel);
+                if(e.Type != StringType.Template) // Don't put templates to clipboard -- let the game replace the values first
+                    Clipboard.AddText(inputText, CurrentLevel);
+                // Still going to dump, since templates are useful to translators, but not all translateable strings are templates
                 Logger.DumpLine(inputText, CurrentLevel);
             }
             else
