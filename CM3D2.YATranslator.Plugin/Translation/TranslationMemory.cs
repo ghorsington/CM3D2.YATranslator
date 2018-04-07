@@ -216,14 +216,14 @@ namespace CM3D2.YATranslator.Plugin.Translation
                 }
                 catch (Exception)
                 {
-                    return;
+                    continue;
                 }
 
                 if (cachedTexturePaths.TryGetValue(fileName, out TextureReplacement replacement))
                 {
                     Logger.WriteLine(LogLevel.Warning,
                                      $"Found a duplicate of {fileName} in `Textures` folder. Going to use {fileName}.{replacement.TextureType}.");
-                    return;
+                    continue;
                 }
 
                 Logger.WriteLine(ResourceType.Textures, $"CacheTexture::{fileName}");
