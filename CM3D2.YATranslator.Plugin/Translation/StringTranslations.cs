@@ -62,6 +62,8 @@ namespace CM3D2.YATranslator.Plugin.Translation
 
             if (LoadFromFile(filePath))
                 TranslationsLoaded = true;
+            else
+                translationFilePaths.Remove(filePath);
         }
 
         public void ClearFilePaths()
@@ -83,10 +85,16 @@ namespace CM3D2.YATranslator.Plugin.Translation
             if (TranslationsLoaded)
                 return true;
 
+            List<string> invalidPaths = new List<string>();
             bool loadedValidTranslations = false;
             foreach (string path in translationFilePaths)
                 if (LoadFromFile(path))
                     loadedValidTranslations = true;
+                else
+                    invalidPaths.Add(path);
+
+            foreach (string invalidPath in invalidPaths)
+                translationFilePaths.Remove(invalidPath);
 
             TranslationsLoaded = loadedValidTranslations;
 
@@ -115,7 +123,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
             int translated = 0;
             foreach (string translationLine in translationLines)
             {
-                string[] textParts = translationLine.Split(new[] {'\t'}, StringSplitOptions.RemoveEmptyEntries);
+                string[] textParts = translationLine.Split(new[] { '\t' }, StringSplitOptions.RemoveEmptyEntries);
                 if (textParts.Length < 2)
                     continue;
                 string original = textParts[0].Unescape();
@@ -136,10 +144,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
                 }
             }
 
-            if (translated != 0)
-                return true;
-            translationFilePaths.Remove(filePath);
-            return false;
+            return translated != 0;
         }
     }
 }
