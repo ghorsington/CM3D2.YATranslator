@@ -7,6 +7,7 @@ using CM3D2.YATranslator.Hook;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Inject;
+using MethodAttributes = Mono.Cecil.MethodAttributes;
 
 namespace CM3D2.YATranslator.Sybaris.Patcher
 {
@@ -70,6 +71,41 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
             TypeDefinition freeSceneUi = assembly.MainModule.GetType("FreeScene_UI");
             TypeDefinition trophyUi = assembly.MainModule.GetType("Trophy_UI");
             TypeDefinition audioSrcMgr = assembly.MainModule.GetType("AudioSourceMgr");
+            TypeDefinition textureResource = assembly.MainModule.GetType("TextureResource");
+
+            MethodDefinition texResourceCtor = textureResource.GetMethod(".ctor");
+
+            Console.WriteLine($"Ctor parameters: {texResourceCtor.Parameters.Count}");
+
+            if (texResourceCtor.Parameters.Count != 4)
+            {
+                // Compatability patch for COM3D2 v1.13+
+
+                MethodDefinition newCtor = new MethodDefinition(".ctor",
+                                                                MethodAttributes.Public
+                                                                | MethodAttributes.HideBySig
+                                                                | MethodAttributes.SpecialName
+                                                                | MethodAttributes.RTSpecialName,
+                                                                assembly.MainModule.Import(typeof(void)));
+
+                newCtor.Parameters.Add(new ParameterDefinition(texResourceCtor.Parameters[0].ParameterType));
+                newCtor.Parameters.Add(new ParameterDefinition(texResourceCtor.Parameters[1].ParameterType));
+                newCtor.Parameters.Add(new ParameterDefinition(texResourceCtor.Parameters[2].ParameterType));
+                newCtor.Parameters.Add(new ParameterDefinition(texResourceCtor.Parameters[4].ParameterType));
+
+                ILProcessor il = newCtor.Body.GetILProcessor();
+
+                il.Append(il.Create(OpCodes.Ldarg_0));
+                il.Append(il.Create(OpCodes.Ldarg_1));
+                il.Append(il.Create(OpCodes.Ldarg_2));
+                il.Append(il.Create(OpCodes.Ldarg_3));
+                il.Append(il.Create(OpCodes.Ldnull));
+                il.Append(il.Create(OpCodes.Ldarg_S, (byte)4));
+                il.Append(il.Create(OpCodes.Call, assembly.MainModule.Import(texResourceCtor)));
+                il.Append(il.Create(OpCodes.Ret));
+
+                textureResource.Methods.Add(newCtor);
+            }
 
             MethodDefinition infoReplace = scheduleApi.GetMethod("InfoReplace");
             MethodDefinition onTranslateInfoText = hookType.GetMethod(nameof(TranslationHooks.OnTranslateInfoText));

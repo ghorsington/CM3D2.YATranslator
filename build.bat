@@ -10,7 +10,6 @@ rem SOLUTION-SPECIFIC VARIABLES:
 set hook=CM3D2.YATranslator.Hook
 set plugin=CM3D2.YATranslator.Plugin
 set patchersybaris=CM3D2.YATranslator.Sybaris.Patcher
-set patcherrei=CM3D2.YATranslator.Patch
 
 rem SOLUTION-SPECIFIC VARIABLES END
 
@@ -61,17 +60,6 @@ if not [%hook%] == [] (
 	)
 )
 
-if not [%patcherrei%] == [] (
-	rmdir /Q /S "%cd%\%patcherrei%\bin\%buildconf%" >NUL
-	rmdir /Q /S "%cd%\%patcherrei%\obj" >NUL
-	
-	%msbuild% "%cd%\%patcherrei%\%patcherrei%.csproj" /p:Configuration=%buildconf%,Platform=%buildplat%
-
-	if not %ERRORLEVEL%==0 (
-		echo Failed to compile Patch! Make sure you have all the needed assemblies in the "Libs" folder!
-	)
-)
-
 if not [%patchersybaris%] == [] (
 	rmdir /Q /S "%cd%\%patchersybaris%\bin\%buildconf%" >NUL
 	rmdir /Q /S "%cd%\%patchersybaris%\obj" >NUL
@@ -96,7 +84,6 @@ if not [%plugin%] == [] (
 
 mkdir Build
 move /Y "%cd%\%hook%\bin\%buildconf%\%hook%.dll" "%cd%\Build\%hook%.dll"
-move /Y "%cd%\%patcherrei%\bin\%buildconf%\%patcherrei%.dll" "%cd%\Build\%patcherrei%.dll"
 move /Y "%cd%\%patchersybaris%\bin\%buildconf%\%patchersybaris%.dll" "%cd%\Build\%patchersybaris%.dll"
 move /Y "%cd%\%plugin%\bin\%buildconf%\%plugin%.dll" "%cd%\Build\%plugin%.dll"
 
