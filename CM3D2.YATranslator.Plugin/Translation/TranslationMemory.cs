@@ -41,7 +41,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
         public TranslationMemory(string translationPath)
         {
             TranslationsPath = translationPath;
-            translatedStrings = new Dictionary<string, string>();
+            translatedStrings = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
             cachedAssetPaths = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
             stringGroups = new Dictionary<int, StringTranslations>();
             cachedTexturePaths = new Dictionary<string, TextureReplacement>(StringComparer.InvariantCultureIgnoreCase);

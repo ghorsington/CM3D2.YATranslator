@@ -20,7 +20,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
 
             translationFilePaths = new HashSet<string>();
             loadedRegexTranslations = new Dictionary<Regex, string>();
-            loadedStringTranslations = new Dictionary<string, string>();
+            loadedStringTranslations = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
         }
 
         public int FileCount => translationFilePaths.Count;
