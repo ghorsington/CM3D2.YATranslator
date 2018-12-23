@@ -85,7 +85,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(text);
 
                 Logger.WriteLine(ResourceType.Assets, $"CacheAsset::{fileNameWithoutExtension}");
-                cachedAssetPaths.AddOrSet(fileNameWithoutExtension, text);
+                cachedAssetPaths[fileNameWithoutExtension] = text;
             }
 
             Logger.WriteLine($"CacheAssets::Cached '{cachedAssetPaths.Count}' Assets");
@@ -238,7 +238,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
                 }
 
                 Logger.WriteLine(ResourceType.Textures, $"CacheTexture::{fileName}");
-                cachedTexturePaths.AddOrSet(fileName, new TextureReplacement(type, path));
+                cachedTexturePaths[fileName] = new TextureReplacement(type, path);
             }
 
             Logger.WriteLine($"CacheTexture::Cached '{cachedTexturePaths.Count}' Textures");

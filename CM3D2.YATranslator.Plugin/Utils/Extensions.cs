@@ -79,22 +79,6 @@ namespace CM3D2.YATranslator.Plugin.Utils
             return (T) Enum.Parse(typeof(T), value, ignoreCase);
         }
 
-        public static void AddIfNotPresent<TKey, TValue>(this IDictionary<TKey, TValue> self, TKey key, TValue value)
-        {
-            if (!self.ContainsKey(key))
-                self.Add(key, value);
-        }
-
-        public static void AddOrSet<TKey, TValue>(this IDictionary<TKey, TValue> self, TKey key, TValue value)
-        {
-            if (key == null)
-                return;
-            if (self.ContainsKey(key))
-                self[key] = value;
-            else
-                self.Add(key, value);
-        }
-
         public static string Escape(this string txt)
         {
             var stringBuilder = new StringBuilder(txt.Length + 2);

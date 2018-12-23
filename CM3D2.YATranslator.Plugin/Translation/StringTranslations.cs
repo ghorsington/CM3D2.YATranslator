@@ -144,12 +144,12 @@ namespace CM3D2.YATranslator.Plugin.Translation
 
                 if (original.StartsWith("$", StringComparison.CurrentCulture))
                 {
-                    loadedRegexTranslations.AddIfNotPresent(new Regex(original.Substring(1), RegexOptions.Compiled), translation);
+                    loadedRegexTranslations[new Regex(original.Substring(1), RegexOptions.Compiled)] = translation;
                     translated++;
                 }
                 else
                 {
-                    loadedStringTranslations.AddIfNotPresent(original, translation);
+                    loadedStringTranslations[original] = translation;
                     translated++;
                 }
             }
