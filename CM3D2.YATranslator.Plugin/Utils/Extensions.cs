@@ -8,6 +8,64 @@ namespace CM3D2.YATranslator.Plugin.Utils
 {
     public static class Extensions
     {
+        public static string Template(this string template, Func<string, string> templateFunc)
+        {
+            var sb = new StringBuilder(template.Length);
+            var sbTemplate = new StringBuilder();
+
+            bool insideTemplate = false;
+            bool bracedTemplate = false;
+            for (int i = 0; i < template.Length; i++)
+            {
+                char c = template[i];
+                switch (c)
+                {
+                    case '\\':
+                        if (i + 1 < template.Length && template[i + 1] == '$')
+                        {
+                            sb.Append('$');
+                            i++;
+                            continue;
+                        }
+                        break;
+                    case '$':
+                        insideTemplate = true;
+                        continue;
+                    case '{':
+                        if (insideTemplate)
+                        {
+                            bracedTemplate = true;
+                            continue;
+                        }
+                        break;
+                    case '}':
+                        if (insideTemplate && sbTemplate.Length > 0)
+                        {
+                            sb.Append(templateFunc(sbTemplate.ToString()));
+                            sbTemplate.Length = 0;
+                            insideTemplate = false;
+                            bracedTemplate = false;
+                            continue;
+                        }
+                        break;
+                }
+
+                if (insideTemplate && !bracedTemplate && char.IsWhiteSpace(c))
+                {
+                    sb.Append(templateFunc(sbTemplate.ToString()));
+                    sbTemplate.Length = 0;
+                    insideTemplate = false;
+                }
+
+                if (insideTemplate)
+                    sbTemplate.Append(c);
+                else
+                    sb.Append(c);
+            }
+
+            return sb.ToString();
+        }
+
         public static ManagedCoroutine StartManagedCoroutine(this MonoBehaviour self, IEnumerator coroutine) =>
                 new ManagedCoroutine(self, coroutine).Start();
 

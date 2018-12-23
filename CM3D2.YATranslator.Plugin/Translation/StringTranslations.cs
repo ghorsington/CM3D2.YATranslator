@@ -44,11 +44,22 @@ namespace CM3D2.YATranslator.Plugin.Translation
                 return true;
 
             foreach (KeyValuePair<Regex, string> regexTranslation in loadedRegexTranslations)
-                if (regexTranslation.Key.IsMatch(original))
+            {
+                var m = regexTranslation.Key.Match(original);
+                if (!m.Success)
+                    continue;
+                result = regexTranslation.Value.Template(s =>
                 {
-                    result = regexTranslation.Key.Replace(original, regexTranslation.Value);
-                    return true;
-                }
+                    string capturedString;
+                    if (int.TryParse(s, out int index) && index < m.Groups.Count)
+                        capturedString = m.Groups[index].Value;
+                    else
+                        capturedString = m.Groups[s].Value;
+                    return loadedStringTranslations.TryGetValue(capturedString, out string groupTranslation) ? groupTranslation : capturedString;
+                });
+                return true;
+            }
+                
 
             return false;
         }
