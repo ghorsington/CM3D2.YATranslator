@@ -22,35 +22,28 @@ namespace CM3D2.YATranslator.Hook
 
         public static bool OnGetSeedButton(out Button result, ref Button[] buttons, string str)
         {
-            StringTranslationEventArgs args = new StringTranslationEventArgs
-            {
-                Text = str,
-                Type = StringType.Unknown
-            };
+            var args = new StringTranslationEventArgs {Text = str, Type = StringType.Unknown};
 
             GetOppositePair?.Invoke(null, args);
 
             string other = args.Translation;
 
-            foreach (Button button in buttons)
+            foreach (var button in buttons)
             {
-                Text text = button.GetComponentInChildren<Text>();
+                var text = button.GetComponentInChildren<Text>();
                 if (text.text != str && (other == null || text.text != other))
                     continue;
                 result = button;
                 return true;
             }
+
             result = null;
             return false;
         }
 
         public static void OnGetSeedType(ref string str)
         {
-            StringTranslationEventArgs args = new StringTranslationEventArgs
-            {
-                Text = str,
-                Type = StringType.Unknown
-            };
+            var args = new StringTranslationEventArgs {Text = str, Type = StringType.Unknown};
 
             GetOriginalText?.Invoke(null, args);
 
@@ -60,20 +53,14 @@ namespace CM3D2.YATranslator.Hook
 
         public static void OnTranslateGraphic(MaskableGraphic graphic)
         {
-            GraphicTranslationEventArgs args = new GraphicTranslationEventArgs
-            {
-                Graphic = graphic
-            };
+            var args = new GraphicTranslationEventArgs {Graphic = graphic};
 
             TranslateGraphic?.Invoke(null, args);
         }
 
         public static void OnPlaySound(AudioSourceMgr mgr)
         {
-            SoundEventArgs args = new SoundEventArgs
-            {
-                AudioSourceMgr = mgr
-            };
+            var args = new SoundEventArgs {AudioSourceMgr = mgr};
 
             PlaySound?.Invoke(null, args);
         }
@@ -88,17 +75,14 @@ namespace CM3D2.YATranslator.Hook
             if (string.IsNullOrEmpty(spriteName) || (previouslyTranslated = spriteName.StartsWith("!")))
                 return;
 
-            TextureTranslationEventArgs args = new TextureTranslationEventArgs(sprite.name, "SPRITE")
-            {
-                OriginalTexture = sprite.texture
-            };
+            var args = new TextureTranslationEventArgs(sprite.name, "SPRITE") {OriginalTexture = sprite.texture};
 
             SpriteLoad?.Invoke(null, args);
 
             if (args.Data == null)
                 return;
 
-            Sprite newSprite = Sprite.Create(args.Data.CreateTexture2D(), sprite.rect, sprite.pivot);
+            var newSprite = Sprite.Create(args.Data.CreateTexture2D(), sprite.rect, sprite.pivot);
             newSprite.name = previouslyTranslated ? spriteName : "!" + spriteName;
             sprite = newSprite;
         }
@@ -110,10 +94,7 @@ namespace CM3D2.YATranslator.Hook
 
         public static TextureResource OnArcTextureLoaded(TextureResource resource, string name)
         {
-            TextureTranslationEventArgs args = new TextureTranslationEventArgs(name, "ARC")
-            {
-                Data = resource
-            };
+            var args = new TextureTranslationEventArgs(name, "ARC") {Data = resource};
 
             ArcTextureLoaded?.Invoke(null, args);
 
@@ -122,12 +103,7 @@ namespace CM3D2.YATranslator.Hook
 
         public static void OnTranslateUiText(int tag, Text uiText, ref string text)
         {
-            StringTranslationEventArgs args = new StringTranslationEventArgs
-            {
-                Text = text,
-                TextContainer = uiText,
-                Type = (StringType) tag
-            };
+            var args = new StringTranslationEventArgs {Text = text, TextContainer = uiText, Type = (StringType) tag};
 
             TranslateText?.Invoke(null, args);
 
@@ -137,11 +113,7 @@ namespace CM3D2.YATranslator.Hook
 
         public static void OnTranslateConstText(int tag, ref string text)
         {
-            StringTranslationEventArgs args = new StringTranslationEventArgs
-            {
-                Text = text,
-                Type = (StringType) tag
-            };
+            var args = new StringTranslationEventArgs {Text = text, Type = (StringType) tag};
 
             TranslateText?.Invoke(null, args);
 
@@ -153,7 +125,7 @@ namespace CM3D2.YATranslator.Hook
         {
             name = name.Replace(".tex", "");
 
-            TextureTranslationEventArgs args = new TextureTranslationEventArgs(name, "ARC");
+            var args = new TextureTranslationEventArgs(name, "ARC");
 
             ArcTextureLoad?.Invoke(null, args);
 
@@ -161,8 +133,10 @@ namespace CM3D2.YATranslator.Hook
             return args.Data != null;
         }
 
-        public static bool OnArcTextureLoadEx(out TextureResource result, AFileSystemBase fileSystem, string name) =>
-                OnArcTextureLoad(out result, name);
+        public static bool OnArcTextureLoadEx(out TextureResource result, AFileSystemBase fileSystem, string name)
+        {
+            return OnArcTextureLoad(out result, name);
+        }
 
         public static void OnAssetTextureLoad(int forceTag, UIWidget im)
         {
@@ -181,10 +155,7 @@ namespace CM3D2.YATranslator.Hook
                 texture2D.name = texture2D.name.Substring(1);
             }
 
-            TextureTranslationEventArgs args = new TextureTranslationEventArgs(textureName, im.name)
-            {
-                OriginalTexture = texture2D
-            };
+            var args = new TextureTranslationEventArgs(textureName, im.name) {OriginalTexture = texture2D};
 
             AssetTextureLoad?.Invoke(im, args);
 
@@ -198,12 +169,7 @@ namespace CM3D2.YATranslator.Hook
 
         public static void OnTranslateText(int tag, UILabel label, ref string text)
         {
-            StringTranslationEventArgs args = new StringTranslationEventArgs
-            {
-                Text = label.text,
-                TextContainer = label,
-                Type = (StringType) tag
-            };
+            var args = new StringTranslationEventArgs {Text = label.text, TextContainer = label, Type = (StringType) tag};
 
             TranslateText?.Invoke(null, args);
 
@@ -216,11 +182,8 @@ namespace CM3D2.YATranslator.Hook
 
         public static void OnYotogiKagHitRet(YotogiKagManager manager)
         {
-            StringTranslationEventArgs args = new StringTranslationEventArgs
-            {
-                Text = manager.kag.GetText()
-            };
-            
+            var args = new StringTranslationEventArgs {Text = manager.kag.GetText()};
+
             YotogiKagSubtitleCaptured?.Invoke(null, args);
         }
     }

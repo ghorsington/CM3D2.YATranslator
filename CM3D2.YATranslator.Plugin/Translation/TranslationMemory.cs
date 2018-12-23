@@ -24,18 +24,18 @@ namespace CM3D2.YATranslator.Plugin.Translation
         private static readonly int[] NoLevels = new int[0];
         private const string STRINGS_FOLDER = "Strings";
         private const string TEXTURES_FOLDER = "Textures";
-        private readonly Dictionary<string, string> cachedAssetPaths;
-        private readonly Dictionary<string, TextureReplacement> cachedTexturePaths;
-        private readonly StringTranslations globalTranslations;
-        private readonly Dictionary<int, StringTranslations> stringGroups;
-        private readonly Dictionary<string, string> translatedStrings;
 
         private StringTranslations activeTranslations;
 
         private string assetsPath;
+        private readonly Dictionary<string, string> cachedAssetPaths;
+        private readonly Dictionary<string, TextureReplacement> cachedTexturePaths;
+        private readonly StringTranslations globalTranslations;
         private bool isDirectoriesChecked;
+        private readonly Dictionary<int, StringTranslations> stringGroups;
         private string stringsPath;
         private string texturesPath;
+        private readonly Dictionary<string, string> translatedStrings;
         private string translationsPath;
 
         public TranslationMemory(string translationPath)
@@ -87,6 +87,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
                 Logger.WriteLine(ResourceType.Assets, $"CacheAsset::{fileNameWithoutExtension}");
                 cachedAssetPaths.AddOrSet(fileNameWithoutExtension, text);
             }
+
             Logger.WriteLine($"CacheAssets::Cached '{cachedAssetPaths.Count}' Assets");
         }
 
@@ -106,23 +107,21 @@ namespace CM3D2.YATranslator.Plugin.Translation
                 return text;
             }
 
-            TextTranslation result = new TextTranslation
-            {
-                Result = TranslationResult.Ok
-            };
+            var result = new TextTranslation {Result = TranslationResult.Ok};
 
             bool wasTranslated = translatedStrings.ContainsKey(original);
             string untranslated = original;
             if (RetranslateText)
+            {
                 untranslated = wasTranslated ? translatedStrings[untranslated] : untranslated;
+            }
             else if (wasTranslated)
             {
-                Logger.WriteLine(ResourceType.Strings,
-                                 LogLevel.Minor,
-                                 $"String::Skip {original} (is already translated)");
+                Logger.WriteLine(ResourceType.Strings, LogLevel.Minor, $"String::Skip {original} (is already translated)");
                 result.Result = TranslationResult.Translated;
                 return result;
             }
+
             result.Text = untranslated;
             string input = untranslated.Replace("\n", "").Trim();
 
@@ -135,9 +134,8 @@ namespace CM3D2.YATranslator.Plugin.Translation
             }
 
             StringTranslations first, second;
-            if (IsOptimizationEnabled(MemoryOptimizations.LoadOnTranslate)
-                && activeTranslations != null
-                && !activeTranslations.TranslationsLoaded)
+            if (IsOptimizationEnabled(MemoryOptimizations.LoadOnTranslate) && activeTranslations != null
+                                                                           && !activeTranslations.TranslationsLoaded)
             {
                 first = globalTranslations;
                 second = activeTranslations;
@@ -155,25 +153,38 @@ namespace CM3D2.YATranslator.Plugin.Translation
             else
                 result.Result = TranslationResult.NotFound;
 
-
             return result;
         }
 
-        public bool TryGetOriginal(string translation, out string original) =>
-                translatedStrings.TryGetValue(translation, out original);
+        public bool TryGetOriginal(string translation, out string original)
+        {
+            return translatedStrings.TryGetValue(translation, out original);
+        }
 
-        public bool WasTranslated(string translation) => translatedStrings.ContainsKey(translation);
+        public bool WasTranslated(string translation)
+        {
+            return translatedStrings.ContainsKey(translation);
+        }
 
-        public TextureReplacement GetTexture(string name) =>
-                cachedTexturePaths.TryGetValue(name, out TextureReplacement replacement)
-                    ? replacement
-                    : TextureReplacement.None;
+        public TextureReplacement GetTexture(string name)
+        {
+            return cachedTexturePaths.TryGetValue(name, out var replacement) ? replacement : TextureReplacement.None;
+        }
 
-        public string GetAssetPath(string name) => cachedAssetPaths.TryGetValue(name, out string path) ? path : null;
+        public string GetAssetPath(string name)
+        {
+            return cachedAssetPaths.TryGetValue(name, out string path) ? path : null;
+        }
 
-        private bool IsOptimizationEnabled(MemoryOptimizations optimization) => (optimization & OptimizationFlags) != 0;
+        private bool IsOptimizationEnabled(MemoryOptimizations optimization)
+        {
+            return (optimization & OptimizationFlags) != 0;
+        }
 
-        private bool CanLoadResouce(ResourceType resourceType) => (resourceType & LoadResource) != 0;
+        private bool CanLoadResouce(ResourceType resourceType)
+        {
+            return (resourceType & LoadResource) != 0;
+        }
 
         private void CheckDirectories()
         {
@@ -219,7 +230,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
                     continue;
                 }
 
-                if (cachedTexturePaths.TryGetValue(fileName, out TextureReplacement replacement))
+                if (cachedTexturePaths.TryGetValue(fileName, out var replacement))
                 {
                     Logger.WriteLine(LogLevel.Warning,
                                      $"Found a duplicate of {fileName} in `Textures` folder. Going to use {fileName}.{replacement.TextureType}.");
@@ -229,6 +240,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
                 Logger.WriteLine(ResourceType.Textures, $"CacheTexture::{fileName}");
                 cachedTexturePaths.AddOrSet(fileName, new TextureReplacement(type, path));
             }
+
             Logger.WriteLine($"CacheTexture::Cached '{cachedTexturePaths.Count}' Textures");
         }
 
@@ -237,9 +249,8 @@ namespace CM3D2.YATranslator.Plugin.Translation
             if (!CanLoadResouce(ResourceType.Strings))
                 return;
 
-            if (activeTranslations != null
-                && IsOptimizationEnabled(MemoryOptimizations.LazyLoad)
-                && IsOptimizationEnabled(MemoryOptimizations.UnloadOnLevelChange))
+            if (activeTranslations != null && IsOptimizationEnabled(MemoryOptimizations.LazyLoad)
+                                           && IsOptimizationEnabled(MemoryOptimizations.UnloadOnLevelChange))
                 activeTranslations.ClearTranslations();
 
             activeTranslations = null;
@@ -249,8 +260,8 @@ namespace CM3D2.YATranslator.Plugin.Translation
                 activeTranslations.LoadTranslations();
 
             Logger.WriteLine(IsOptimizationEnabled(MemoryOptimizations.LoadOnTranslate)
-                                 ? $"CacheString::Cached '{(activeTranslations?.FileCount ?? 0) + globalTranslations.FileCount}' translation files for Level '{level}'"
-                                 : $"CacheString::Cached '{(activeTranslations?.LoadedStringCount ?? 0) + globalTranslations.LoadedStringCount}' Strings and '{(activeTranslations?.LoadedRegexCount ?? 0) + globalTranslations.LoadedRegexCount}' Regexes for Level '{level}'");
+                                     ? $"CacheString::Cached '{(activeTranslations?.FileCount ?? 0) + globalTranslations.FileCount}' translation files for Level '{level}'"
+                                     : $"CacheString::Cached '{(activeTranslations?.LoadedStringCount ?? 0) + globalTranslations.LoadedStringCount}' Strings and '{(activeTranslations?.LoadedRegexCount ?? 0) + globalTranslations.LoadedRegexCount}' Regexes for Level '{level}'");
         }
 
         private void LoadStringTranslations()
@@ -258,7 +269,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
             globalTranslations.ClearTranslations();
             globalTranslations.ClearFilePaths();
 
-            foreach (KeyValuePair<int, StringTranslations> group in stringGroups)
+            foreach (var group in stringGroups)
             {
                 group.Value.ClearTranslations();
                 group.Value.ClearFilePaths();
@@ -269,13 +280,13 @@ namespace CM3D2.YATranslator.Plugin.Translation
             int loadedFiles = 0;
             foreach (string translationPath in Directory.GetFiles(stringsPath, "*.txt", SearchOption.AllDirectories))
             {
-                int[] translationLevels = NoLevels;
+                var translationLevels = NoLevels;
                 string fileName = Path.GetFileNameWithoutExtension(translationPath);
-                string[] fileNameParts = fileName.Split('.');
+                var fileNameParts = fileName.Split('.');
 
                 if (fileNameParts.Length != 1)
                 {
-                    List<int> levelList = new List<int>();
+                    var levelList = new List<int>();
                     foreach (string s in fileNameParts[1].Split('-'))
                         if (int.TryParse(s, out int item))
                             levelList.Add(item);
@@ -285,8 +296,8 @@ namespace CM3D2.YATranslator.Plugin.Translation
                 if (Logger.IsLogging(ResourceType.Strings))
                 {
                     string levels = translationLevels.Length > 0
-                                        ? string.Join(",", translationLevels.Select(i => i.ToString()).ToArray())
-                                        : "";
+                                            ? string.Join(",", translationLevels.Select(i => i.ToString()).ToArray())
+                                            : "";
                     Logger.WriteLine($"CacheString::'{fileName}'@'[{levels}]'");
                 }
 
@@ -303,7 +314,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
                     bool translationsCounted = false;
                     foreach (int level in translationLevels)
                     {
-                        if (!stringGroups.TryGetValue(level, out StringTranslations group))
+                        if (!stringGroups.TryGetValue(level, out var group))
                         {
                             group = new StringTranslations(level);
                             stringGroups.Add(level, group);
@@ -323,8 +334,8 @@ namespace CM3D2.YATranslator.Plugin.Translation
             }
 
             Logger.WriteLine(loadContentsIntoMemory
-                                 ? $"Strings::Loaded '{loadedStrings}' Translations"
-                                 : $"Strings::Pre-cached '{loadedFiles}' Translation files");
+                                     ? $"Strings::Loaded '{loadedStrings}' Translations"
+                                     : $"Strings::Pre-cached '{loadedFiles}' Translation files");
         }
     }
 }

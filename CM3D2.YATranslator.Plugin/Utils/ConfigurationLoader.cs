@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using ExIni;
@@ -21,26 +20,24 @@ namespace CM3D2.YATranslator.Plugin.Utils
     {
         public static T LoadConfig<T>(IniFile ini) where T : new()
         {
-            T configObject = new T();
+            var configObject = new T();
             LoadConfig(configObject, ini, "Config");
             return configObject;
         }
 
         public static void LoadConfig(object configObject, IniFile ini, string configSection)
         {
-            Type configType = configObject.GetType();
+            var configType = configObject.GetType();
 
-            IEnumerable<FieldInfo> fields =
-                    configType.GetFields(BindingFlags.Public | BindingFlags.Instance).Where(f => !f.IsInitOnly);
-            IEnumerable<PropertyInfo> properties = configType
-                    .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(p => p.GetGetMethod() != null && p.GetSetMethod() != null);
+            var fields = configType.GetFields(BindingFlags.Public | BindingFlags.Instance).Where(f => !f.IsInitOnly);
+            var properties = configType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                                       .Where(p => p.GetGetMethod() != null && p.GetSetMethod() != null);
 
-            IniSection section = ini[configSection];
+            var section = ini[configSection];
 
-            foreach (FieldInfo field in fields)
+            foreach (var field in fields)
             {
-                if (TryInitSubsection(field.FieldType, ini, out object subsection))
+                if (TryInitSubsection(field.FieldType, ini, out var subsection))
                 {
                     field.SetValue(configObject, subsection);
                     continue;
@@ -65,9 +62,9 @@ namespace CM3D2.YATranslator.Plugin.Utils
                 }
             }
 
-            foreach (PropertyInfo property in properties)
+            foreach (var property in properties)
             {
-                if (TryInitSubsection(property.PropertyType, ini, out object subsection))
+                if (TryInitSubsection(property.PropertyType, ini, out var subsection))
                 {
                     property.SetValue(configObject, subsection, null);
                     continue;
@@ -84,9 +81,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
 
                 try
                 {
-                    property.SetValue(configObject,
-                                      Convert.ChangeType(section[propertyName].Value, property.PropertyType),
-                                      null);
+                    property.SetValue(configObject, Convert.ChangeType(section[propertyName].Value, property.PropertyType), null);
                 }
                 catch (Exception)
                 {
@@ -98,11 +93,11 @@ namespace CM3D2.YATranslator.Plugin.Utils
         private static bool TryInitSubsection(Type subsectionType, IniFile ini, out object subsection)
         {
             subsection = null;
-            object[] sectionAttr = subsectionType.GetCustomAttributes(typeof(ConfigSectionAttribute), true);
+            var sectionAttr = subsectionType.GetCustomAttributes(typeof(ConfigSectionAttribute), true);
 
             if (sectionAttr.Length <= 0)
                 return false;
-            ConfigSectionAttribute attr = (ConfigSectionAttribute) sectionAttr[0];
+            var attr = (ConfigSectionAttribute) sectionAttr[0];
             if (string.IsNullOrEmpty(attr.Section))
                 return true;
             try
@@ -115,6 +110,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
                 subsection = null;
                 return true;
             }
+
             return true;
         }
     }

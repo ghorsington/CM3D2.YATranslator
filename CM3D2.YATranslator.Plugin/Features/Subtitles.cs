@@ -81,7 +81,9 @@ namespace CM3D2.YATranslator.Plugin.Features
                 Logger.DumpVoice(soundName, mgr.audiosource.clip, CurrentLevel);
             }
             else
+            {
                 lastWasTranslated = true;
+            }
 
             TrackAudio(mgr.audiosource);
         }
@@ -91,7 +93,7 @@ namespace CM3D2.YATranslator.Plugin.Features
             if (panel != null)
                 return;
 
-            GameObject uiRoot = GameObject.Find("SystemUI Root");
+            var uiRoot = GameObject.Find("SystemUI Root");
 
             if (uiRoot == null)
                 return;
@@ -103,11 +105,11 @@ namespace CM3D2.YATranslator.Plugin.Features
             panel.transform.localScale = Vector3.one;
             panel.layer = uiRoot.layer;
 
-            Canvas canvas = panel.AddComponent<Canvas>();
+            var canvas = panel.AddComponent<Canvas>();
             canvas.overrideSorting = true;
             canvas.renderMode = RenderMode.WorldSpace;
 
-            RectTransform rect = panel.GetComponent<RectTransform>();
+            var rect = panel.GetComponent<RectTransform>();
             // TODO: Figure out how to obtain the value from the game itself
             rect.sizeDelta = new Vector2(1920f, 1080f);
 
@@ -115,7 +117,7 @@ namespace CM3D2.YATranslator.Plugin.Features
 
             subtitleText = panel.AddComponent<Text>();
             subtitleText.transform.SetParent(panel.transform, false);
-            Font myFont = (Font) Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
+            var myFont = (Font) Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
             subtitleText.font = myFont;
             subtitleText.material = myFont.material;
             subtitleText.text = string.Empty;
@@ -127,10 +129,10 @@ namespace CM3D2.YATranslator.Plugin.Features
             panel = new GameObject("Panel");
             DontDestroyOnLoad(panel);
 
-            Canvas canvas = panel.AddComponent<Canvas>();
+            var canvas = panel.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
-            RectTransform rect = panel.GetComponent<RectTransform>();
+            var rect = panel.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(0f, 0f);
             rect.anchorMin = new Vector2(0f, 0f);
             rect.anchorMax = new Vector2(1f, 1f);
@@ -140,7 +142,7 @@ namespace CM3D2.YATranslator.Plugin.Features
             subtitleText = panel.AddComponent<Text>();
             subtitleText.transform.SetParent(panel.transform, false);
             subtitleText.transform.localPosition = new Vector3(0f, 0f, 10f);
-            Font myFont = (Font) Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
+            var myFont = (Font) Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
             subtitleText.font = myFont;
             subtitleText.material = myFont.material;
             subtitleText.text = string.Empty;

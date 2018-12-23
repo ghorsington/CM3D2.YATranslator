@@ -10,8 +10,8 @@ namespace CM3D2.YATranslator.Hook
             Name = name.Replace('.', '-');
             Meta = meta;
             CompoundHash = string.IsNullOrEmpty(Meta) || Meta.Equals(Name, StringComparison.Ordinal)
-                               ? GetMetaHash(Name).ToString("X16")
-                               : GetMetaHash(Meta + ":" + Name).ToString("X16");
+                                   ? GetMetaHash(Name).ToString("X16")
+                                   : GetMetaHash(Meta + ":" + Name).ToString("X16");
         }
 
         public string CompoundHash { get; }
@@ -32,6 +32,7 @@ namespace CM3D2.YATranslator.Hook
                 num += t;
                 num *= 3074457345618258799uL;
             }
+
             return num;
         }
     }

@@ -10,11 +10,10 @@ namespace CM3D2.YATranslator.Plugin.Features
 {
     public class Clipboard : MonoBehaviour
     {
+        private bool allowAll;
         private readonly HashSet<int> allowedLevels;
         private readonly StringBuilder clipboardContents;
         private readonly HashSet<string> clipboardStrings;
-
-        private bool allowAll;
         private float currWaitTime;
         private float maxWaitTime = 0.5f;
         private ManagedCoroutine sendToClipboard = ManagedCoroutine.NoRoutine;
@@ -73,6 +72,7 @@ namespace CM3D2.YATranslator.Plugin.Features
 
                 allowedLevels.Add(level);
             }
+
             Enabled = allowedLevels.Count != 0;
             allowAll = false;
         }
@@ -84,6 +84,7 @@ namespace CM3D2.YATranslator.Plugin.Features
                 yield return new WaitForSeconds(maxWaitTime);
                 currWaitTime += maxWaitTime;
             }
+
             WindowsClipboard.SetText(clipboardContents.ToString());
             clipboardStrings.Clear();
             clipboardContents.Length = 0;

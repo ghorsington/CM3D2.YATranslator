@@ -42,14 +42,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
         private static bool dumpAllLevels;
         private static bool dumpFileLoaded;
 
-        private static readonly string[] DumpFolderNames =
-        {
-            "Strings",
-            "Textures",
-            "Assets",
-            "Textures_Sprites",
-            "Audio"
-        };
+        private static readonly string[] DumpFolderNames = {"Strings", "Textures", "Assets", "Textures_Sprites", "Audio"};
 
         private static TextWriter dumpStream;
 
@@ -74,6 +67,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
                         dumpAllLevels = true;
                         return;
                     }
+
                     AllowedDumpLevels.Add(level);
                 }
             }
@@ -86,14 +80,17 @@ namespace CM3D2.YATranslator.Plugin.Utils
             set
             {
                 AllowedDumpTypes.Clear();
-                foreach (DumpType dumpType in value)
+                foreach (var dumpType in value)
                     AllowedDumpTypes.Add(dumpType);
             }
         }
 
         public static ResourceType Verbosity { get; set; }
 
-        public static bool CanDump(DumpType type) => AllowedDumpTypes.Contains(type);
+        public static bool CanDump(DumpType type)
+        {
+            return AllowedDumpTypes.Contains(type);
+        }
 
         public static bool InitDump()
         {
@@ -119,8 +116,9 @@ namespace CM3D2.YATranslator.Plugin.Utils
                 WriteLine(LogLevel.Error, $"Failed to create dump directory because {e.Message}");
                 return false;
             }
-            string dumpFilePath = Path.Combine(GetDumpFolderName(DumpType.Strings),
-                                               $"{DUMP_FILENAME}.{DateTime.Now:yyyy-MM-dd-HHmmss}.txt");
+
+            string dumpFilePath =
+                    Path.Combine(GetDumpFolderName(DumpType.Strings), $"{DUMP_FILENAME}.{DateTime.Now:yyyy-MM-dd-HHmmss}.txt");
             try
             {
                 dumpStream = File.CreateText(dumpFilePath);
@@ -132,6 +130,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
                 WriteLine(LogLevel.Error, $"Failed to create dump to {dumpFilePath}. Reason: {e.Message}");
                 return false;
             }
+
             return true;
         }
 
@@ -173,11 +172,14 @@ namespace CM3D2.YATranslator.Plugin.Utils
             WriteLine(verbosity, LogLevel.Normal, message);
         }
 
-        public static bool IsLogging(ResourceType verbosity) => (verbosity & Verbosity) != 0;
+        public static bool IsLogging(ResourceType verbosity)
+        {
+            return (verbosity & Verbosity) != 0;
+        }
 
         public static void WriteLine(LogLevel logLevel, string message)
         {
-            ConsoleColor oldColor = SafeConsole.ForegroundColor;
+            var oldColor = SafeConsole.ForegroundColor;
             SafeConsole.ForegroundColor = logLevel.Color;
             Console.WriteLine($"{TAG}::{message}");
             SafeConsole.ForegroundColor = oldColor;
@@ -190,7 +192,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
 
         public static void DumpTexture(DumpType dumpType, TextureTranslationEventArgs args, bool duplicate, int level)
         {
-            Texture2D texture = args.OriginalTexture ?? args.Data.CreateTexture2D();
+            var texture = args.OriginalTexture ?? args.Data.CreateTexture2D();
             if (!CanDump(dumpType) || texture == null || !InitDump())
                 return;
             if (!dumpAllLevels && !AllowedDumpLevels.Contains(level))
@@ -209,13 +211,13 @@ namespace CM3D2.YATranslator.Plugin.Utils
             if (File.Exists(path))
                 return;
 
-            Texture2D tex = duplicate || texture.format == TextureFormat.DXT1 || texture.format == TextureFormat.DXT5
-                                ? Duplicate(texture)
-                                : texture;
+            var tex = duplicate || texture.format == TextureFormat.DXT1 || texture.format == TextureFormat.DXT5
+                              ? Duplicate(texture)
+                              : texture;
             WriteLine($"Dumping {fileName}.png");
-            using (FileStream fs = File.Create(path))
+            using (var fs = File.Create(path))
             {
-                byte[] pngData = tex.EncodeToPNG();
+                var pngData = tex.EncodeToPNG();
                 fs.Write(pngData, 0, pngData.Length);
                 fs.Flush();
             }
@@ -238,28 +240,31 @@ namespace CM3D2.YATranslator.Plugin.Utils
 
             WriteLine($"Dumping {name}.wav");
 
-            using (FileStream fs = File.Create(path))
+            using (var fs = File.Create(path))
             {
-                byte[] wavData = clip.ToWavData();
+                var wavData = clip.ToWavData();
                 fs.Write(wavData, 0, wavData.Length);
                 fs.Flush();
             }
         }
 
-        private static string GetDumpFolderName(DumpType dumpType) => DumpFolderNames[(int) dumpType];
+        private static string GetDumpFolderName(DumpType dumpType)
+        {
+            return DumpFolderNames[(int) dumpType];
+        }
 
         private static Texture2D Duplicate(Texture texture)
         {
             WriteLine($"Duplicating texture {texture.name}");
-            RenderTexture render = RenderTexture.GetTemporary(texture.width,
-                                                              texture.height,
-                                                              0,
-                                                              RenderTextureFormat.Default,
-                                                              RenderTextureReadWrite.Linear);
+            var render = RenderTexture.GetTemporary(texture.width,
+                                                    texture.height,
+                                                    0,
+                                                    RenderTextureFormat.Default,
+                                                    RenderTextureReadWrite.Linear);
             Graphics.Blit(texture, render);
-            RenderTexture previous = RenderTexture.active;
+            var previous = RenderTexture.active;
             RenderTexture.active = render;
-            Texture2D result = new Texture2D(texture.width, texture.height);
+            var result = new Texture2D(texture.width, texture.height);
             result.ReadPixels(new Rect(0, 0, render.width, render.height), 0, 0);
             result.Apply();
             RenderTexture.active = previous;

@@ -27,6 +27,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
                             i++;
                             continue;
                         }
+
                         break;
                     case '$':
                         insideTemplate = true;
@@ -37,6 +38,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
                             bracedTemplate = true;
                             continue;
                         }
+
                         break;
                     case '}':
                         if (insideTemplate && sbTemplate.Length > 0)
@@ -47,6 +49,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
                             bracedTemplate = false;
                             continue;
                         }
+
                         break;
                 }
 
@@ -66,11 +69,15 @@ namespace CM3D2.YATranslator.Plugin.Utils
             return sb.ToString();
         }
 
-        public static ManagedCoroutine StartManagedCoroutine(this MonoBehaviour self, IEnumerator coroutine) =>
-                new ManagedCoroutine(self, coroutine).Start();
+        public static ManagedCoroutine StartManagedCoroutine(this MonoBehaviour self, IEnumerator coroutine)
+        {
+            return new ManagedCoroutine(self, coroutine).Start();
+        }
 
-        public static T ParseEnum<T>(string value, bool ignoreCase = false) =>
-                (T) Enum.Parse(typeof(T), value, ignoreCase);
+        public static T ParseEnum<T>(string value, bool ignoreCase = false)
+        {
+            return (T) Enum.Parse(typeof(T), value, ignoreCase);
+        }
 
         public static void AddIfNotPresent<TKey, TValue>(this IDictionary<TKey, TValue> self, TKey key, TValue value)
         {
@@ -90,7 +97,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
 
         public static string Escape(this string txt)
         {
-            StringBuilder stringBuilder = new StringBuilder(txt.Length + 2);
+            var stringBuilder = new StringBuilder(txt.Length + 2);
             foreach (char c in txt)
                 switch (c)
                 {
@@ -138,7 +145,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
         {
             if (string.IsNullOrEmpty(txt))
                 return txt;
-            StringBuilder stringBuilder = new StringBuilder(txt.Length);
+            var stringBuilder = new StringBuilder(txt.Length);
             for (int i = 0; i < txt.Length;)
             {
                 int num = txt.IndexOf('\\', i);
@@ -187,8 +194,10 @@ namespace CM3D2.YATranslator.Plugin.Utils
                         stringBuilder.Append('\\').Append(c);
                         break;
                 }
+
                 i = num + 2;
             }
+
             return stringBuilder.ToString();
         }
     }

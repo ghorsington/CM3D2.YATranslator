@@ -12,6 +12,9 @@ namespace CM3D2.YATranslator.Plugin.Utils
             CharRegex = new Regex($"[{Regex.Escape(new string(Path.GetInvalidFileNameChars()))}]");
         }
 
-        public static bool IsValidFilename(string filename) => !CharRegex.IsMatch(filename);
+        public static bool IsValidFilename(string filename)
+        {
+            return !CharRegex.IsMatch(filename);
+        }
     }
 }

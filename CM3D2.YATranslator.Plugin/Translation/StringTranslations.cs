@@ -43,7 +43,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
             if (loadedStringTranslations.TryGetValue(original, out result))
                 return true;
 
-            foreach (KeyValuePair<Regex, string> regexTranslation in loadedRegexTranslations)
+            foreach (var regexTranslation in loadedRegexTranslations)
             {
                 var m = regexTranslation.Key.Match(original);
                 if (!m.Success)
@@ -55,11 +55,12 @@ namespace CM3D2.YATranslator.Plugin.Translation
                         capturedString = m.Groups[index].Value;
                     else
                         capturedString = m.Groups[s].Value;
-                    return loadedStringTranslations.TryGetValue(capturedString, out string groupTranslation) ? groupTranslation : capturedString;
+                    return loadedStringTranslations.TryGetValue(capturedString, out string groupTranslation)
+                                   ? groupTranslation
+                                   : capturedString;
                 });
                 return true;
             }
-                
 
             return false;
         }
@@ -96,7 +97,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
             if (TranslationsLoaded)
                 return true;
 
-            List<string> invalidPaths = new List<string>();
+            var invalidPaths = new List<string>();
             bool loadedValidTranslations = false;
             foreach (string path in translationFilePaths)
                 if (LoadFromFile(path))
@@ -126,15 +127,14 @@ namespace CM3D2.YATranslator.Plugin.Translation
             }
             catch (IOException ioe)
             {
-                Logger.WriteLine(LogLevel.Warning,
-                                 $"Failed to load {filePath} because {ioe.Message}. Skipping file...");
+                Logger.WriteLine(LogLevel.Warning, $"Failed to load {filePath} because {ioe.Message}. Skipping file...");
                 return false;
             }
 
             int translated = 0;
             foreach (string translationLine in translationLines)
             {
-                string[] textParts = translationLine.Split(new[] { '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                var textParts = translationLine.Split(new[] {'\t'}, StringSplitOptions.RemoveEmptyEntries);
                 if (textParts.Length < 2)
                     continue;
                 string original = textParts[0].Unescape();
@@ -144,8 +144,7 @@ namespace CM3D2.YATranslator.Plugin.Translation
 
                 if (original.StartsWith("$", StringComparison.CurrentCulture))
                 {
-                    loadedRegexTranslations.AddIfNotPresent(new Regex(original.Substring(1), RegexOptions.Compiled),
-                                                            translation);
+                    loadedRegexTranslations.AddIfNotPresent(new Regex(original.Substring(1), RegexOptions.Compiled), translation);
                     translated++;
                 }
                 else

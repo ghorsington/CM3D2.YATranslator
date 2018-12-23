@@ -19,8 +19,7 @@ namespace CM3D2.YATranslator.Plugin
         {
             get => "-1";
 
-            set => AllowedLevels = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)
-                                        .ToArray();
+            set => AllowedLevels = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
         }
     }
 
@@ -93,7 +92,7 @@ namespace CM3D2.YATranslator.Plugin
 
         private static Vector2 ParseVec2(string value)
         {
-            Match m = Vec2Pattern.Match(value);
+            var m = Vec2Pattern.Match(value);
             if (!m.Success)
                 throw new FormatException("Invalid Vec2 format");
             float x = float.Parse(m.Groups["x"].Value);
@@ -104,7 +103,7 @@ namespace CM3D2.YATranslator.Plugin
 
         private static Color ParseColor(string value)
         {
-            Match m = RgbaPattern.Match(value);
+            var m = RgbaPattern.Match(value);
             if (!m.Success)
                 throw new FormatException("Invalid RGBA format");
             float r = float.Parse(m.Groups["r"].Value);
@@ -119,10 +118,9 @@ namespace CM3D2.YATranslator.Plugin
     [ConfigSection("Config")]
     public class PluginConfiguration
     {
+        public bool EnableStringReload = false;
         private readonly Regex parameterReplacementRegex = new Regex("{([^}]*)}");
         private readonly string[] texTemplateVariables = {"NAME", "HASH", "METADATA", "LEVEL"};
-
-        public bool EnableStringReload = false;
 
         public int[] AllowedDumpLevels { get; private set; } = {-1};
 
@@ -134,7 +132,7 @@ namespace CM3D2.YATranslator.Plugin
 
             set
             {
-                string[] parts = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
+                var parts = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
 
                 DumpTypes = parts.Select(str => (DumpType) Enum.Parse(typeof(DumpType), str.Trim(), true)).ToArray();
                 Logger.DumpTypes = DumpTypes;
@@ -146,8 +144,7 @@ namespace CM3D2.YATranslator.Plugin
             get => "-1";
             set
             {
-                AllowedDumpLevels = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)
-                                         .ToArray();
+                AllowedDumpLevels = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
                 Logger.DumpLevels = AllowedDumpLevels;
             }
         }
@@ -160,13 +157,10 @@ namespace CM3D2.YATranslator.Plugin
 
             set
             {
-                string[] parts = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
+                var parts = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
                 LoadResourceTypes = parts.Aggregate(ResourceType.None,
                                                     (current, part) =>
-                                                        current
-                                                        | (ResourceType) Enum.Parse(typeof(ResourceType),
-                                                                                    part.Trim(),
-                                                                                    true));
+                                                            current | (ResourceType) Enum.Parse(typeof(ResourceType), part.Trim(), true));
             }
         }
 
@@ -194,8 +188,7 @@ namespace CM3D2.YATranslator.Plugin
                                                          m =>
                                                          {
                                                              string template = m.Groups[1].Value;
-                                                             int i = Array.IndexOf(texTemplateVariables,
-                                                                                   template.Trim().ToUpper());
+                                                             int i = Array.IndexOf(texTemplateVariables, template.Trim().ToUpper());
                                                              return i < 0 ? m.Value : $"{{{i.ToString()}}}";
                                                          });
                 Logger.TextureNameTemplate = name;
@@ -208,13 +201,10 @@ namespace CM3D2.YATranslator.Plugin
 
             set
             {
-                string[] parts = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
+                var parts = value.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
                 VerbosityLevel = parts.Aggregate(ResourceType.None,
                                                  (current, part) =>
-                                                     current
-                                                     | (ResourceType) Enum.Parse(typeof(ResourceType),
-                                                                                 part.Trim(),
-                                                                                 true));
+                                                         current | (ResourceType) Enum.Parse(typeof(ResourceType), part.Trim(), true));
                 Logger.Verbosity = VerbosityLevel;
             }
         }

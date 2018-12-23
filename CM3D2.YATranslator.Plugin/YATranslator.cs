@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using CM3D2.YATranslator.Hook;
 using CM3D2.YATranslator.Plugin.Features;
 using CM3D2.YATranslator.Plugin.Translation;
@@ -43,7 +42,7 @@ namespace CM3D2.YATranslator.Plugin
         {
             DontDestroyOnLoad(this);
 
-            MethodInfo processAndRequestMethod = typeof(UILabel).GetMethod("ProcessAndRequest");
+            var processAndRequestMethod = typeof(UILabel).GetMethod("ProcessAndRequest");
             processAndRequest = label => processAndRequestMethod?.Invoke(label, null);
 
             Memory = new TranslationMemory(DataPath);
@@ -86,6 +85,7 @@ namespace CM3D2.YATranslator.Plugin
                     Memory.LoadTranslations();
                     Memory.ActivateLevelTranslations(CurrentLevel, false);
                 }
+
                 TranslateExisting();
             }
         }
@@ -158,7 +158,7 @@ namespace CM3D2.YATranslator.Plugin
                 case Image img:
                     if (img.sprite == null)
                         return;
-                    Sprite currentSprite = img.sprite;
+                    var currentSprite = img.sprite;
                     img.sprite = currentSprite;
                     break;
                 case Text text:
@@ -186,8 +186,8 @@ namespace CM3D2.YATranslator.Plugin
 
             string[] namePossibilities =
             {
-                e.CompoundHash + "@" + SceneManager.GetActiveScene().buildIndex, e.Name + "@" + SceneManager.GetActiveScene().buildIndex,
-                e.CompoundHash, e.Name
+                    e.CompoundHash + "@" + SceneManager.GetActiveScene().buildIndex,
+                    e.Name + "@" + SceneManager.GetActiveScene().buildIndex, e.CompoundHash, e.Name
             };
 
             foreach (string assetName in namePossibilities)
@@ -226,6 +226,7 @@ namespace CM3D2.YATranslator.Plugin
                     e.Translation = inputText;
                     return;
                 }
+
                 inputText = inputText.Substring(1);
             }
 
@@ -233,7 +234,7 @@ namespace CM3D2.YATranslator.Plugin
             if (isAudioClipName)
                 inputText = inputText.Substring(Subtitles.AUDIOCLIP_PREFIX.Length);
 
-            TextTranslation translation = Memory.GetTextTranslation(inputText);
+            var translation = Memory.GetTextTranslation(inputText);
 
             if (translation.Result == TranslationResult.Ok || isRetranslating && translation.Result == TranslationResult.NotFound)
                 e.Translation = translation.Text;
@@ -249,7 +250,7 @@ namespace CM3D2.YATranslator.Plugin
 
             if (!isAudioClipName)
             {
-                if(e.Type != StringType.Template) // Don't put templates to clipboard -- let the game replace the values first
+                if (e.Type != StringType.Template) // Don't put templates to clipboard -- let the game replace the values first
                     Clipboard.AddText(inputText, CurrentLevel);
                 // Still going to dump, since templates are useful to translators, but not all translateable strings are templates
                 Logger.DumpLine(inputText, CurrentLevel);
@@ -271,7 +272,7 @@ namespace CM3D2.YATranslator.Plugin
                 Logger.WriteLine(ResourceType.Textures, LogLevel.Minor, $"FindTexture::{textureName}");
             }
 
-            TextureReplacement replacement = Memory.GetTexture(textureName);
+            var replacement = Memory.GetTexture(textureName);
             TextureResource resource = null;
 
             switch (replacement.TextureType)
@@ -299,8 +300,8 @@ namespace CM3D2.YATranslator.Plugin
         private void TranslateExisting(bool levelChanged = false)
         {
             isRetranslating = !levelChanged && Settings.EnableStringReload;
-            HashSet<string> processedTextures = new HashSet<string>();
-            foreach (UIWidget widget in FindObjectsOfType<UIWidget>())
+            var processedTextures = new HashSet<string>();
+            foreach (var widget in FindObjectsOfType<UIWidget>())
                 if (widget is UILabel label)
                 {
                     processAndRequest(label);
@@ -313,9 +314,10 @@ namespace CM3D2.YATranslator.Plugin
                     processedTextures.Add(texName);
                     TranslationHooks.OnAssetTextureLoad(1, widget);
                 }
+
             isRetranslating = false;
 
-            foreach (MaskableGraphic graphic in FindObjectsOfType<MaskableGraphic>())
+            foreach (var graphic in FindObjectsOfType<MaskableGraphic>())
             {
                 if (graphic is Image img && img.sprite != null)
                     if (img.sprite.name.StartsWith("!"))
