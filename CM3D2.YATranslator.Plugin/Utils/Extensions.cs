@@ -53,7 +53,7 @@ namespace CM3D2.YATranslator.Plugin.Utils
                         break;
                 }
 
-                if (insideTemplate && !bracedTemplate && char.IsWhiteSpace(c))
+                if (insideTemplate && !bracedTemplate && !char.IsDigit(c))
                 {
                     sb.Append(templateFunc(sbTemplate.ToString()));
                     sbTemplate.Length = 0;
