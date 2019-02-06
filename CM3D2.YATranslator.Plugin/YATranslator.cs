@@ -128,7 +128,7 @@ namespace CM3D2.YATranslator.Plugin
 
         private void OnPlaySound(object sender, SoundEventArgs e)
         {
-            if (!Settings.Subtitles.Enable || e.AudioSourceMgr.SoundType != AudioSourceMgr.Type.Voice)
+            if (!Settings.Subtitles.Enable || e.AudioSourceMgr.SoundType < AudioSourceMgr.Type.Voice)
                 return;
 
             Logger.WriteLine(ResourceType.Voices, $"Voices {e.AudioSourceMgr.FileName}");
