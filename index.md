@@ -4,10 +4,8 @@ title: "CM3D2.YATranslator"
 project_title: "Yet Another Translator"
 project_subtitle: "A fast translation loader for CM3D2 with subtitle support"
 asset_types:
-  - postfix: "ReiPatcher"
-    index: 0
   - postfix: "Sybaris"
-    index: 1
+    index: 0
 caption_file: "yatcaption.md"
 sections:
   - id: "help"
