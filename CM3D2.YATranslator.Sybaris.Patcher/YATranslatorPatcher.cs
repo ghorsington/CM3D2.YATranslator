@@ -71,6 +71,9 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
             var audioSrcMgr = assembly.MainModule.GetType("AudioSourceMgr");
             var textureResource = assembly.MainModule.GetType("TextureResource");
 
+            var ui2DSprite = assembly.MainModule.GetType("UI2DSprite");
+            var uiTexture = assembly.MainModule.GetType("UITexture");
+
             var texResourceCtor = textureResource.GetMethod(".ctor");
 
             Console.WriteLine($"Ctor parameters: {texResourceCtor.Parameters.Count}");
@@ -139,12 +142,21 @@ namespace CM3D2.YATranslator.Sybaris.Patcher
             processAndRequestTarget.IsPublic = true;
             processAndRequestTarget.IsPrivate = false;
 
-            var onAssetTextureLoadHook = hookType.GetMethod(nameof(TranslationHooks.OnAssetTextureLoad));
+            var onAssetTextureLoadHook = hookType.GetMethod(nameof(TranslationHooks.OnAssetTextureLoad), "System.Int32", "UIWidget");
             var getMainTextureTarget = uiWidget.GetMethod("get_mainTexture");
             getMainTextureTarget.InjectWith(onAssetTextureLoadHook, tag: 0, flags: InjectFlags.PassInvokingInstance | InjectFlags.PassTag);
 
             var awakeTarget = uiWidget.GetMethod("Awake");
             awakeTarget.InjectWith(onAssetTextureLoadHook, tag: 0, flags: InjectFlags.PassInvokingInstance | InjectFlags.PassTag);
+
+            onAssetTextureLoadHook = hookType.GetMethod(nameof(TranslationHooks.OnAssetTextureLoad), "System.Int32", "UI2DSprite");
+            getMainTextureTarget = ui2DSprite.GetMethod("get_mainTexture");
+            getMainTextureTarget.InjectWith(onAssetTextureLoadHook, tag: 0, flags: InjectFlags.PassInvokingInstance | InjectFlags.PassTag);
+
+            uiTexture.ChangeAccess("mTexture");
+            onAssetTextureLoadHook = hookType.GetMethod(nameof(TranslationHooks.OnAssetTextureLoad), "System.Int32", "UITexture");
+            getMainTextureTarget = uiTexture.GetMethod("get_mainTexture");
+            getMainTextureTarget.InjectWith(onAssetTextureLoadHook, tag: 0, flags: InjectFlags.PassInvokingInstance | InjectFlags.PassTag);
 
             var freeSceneStart = freeSceneUi.GetMethod("FreeScene_Start");
             freeSceneStart.InjectWith(onTranslateConstText,

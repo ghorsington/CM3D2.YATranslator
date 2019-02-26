@@ -312,7 +312,19 @@ namespace CM3D2.YATranslator.Plugin
                     if (string.IsNullOrEmpty(texName) || processedTextures.Contains(texName))
                         continue;
                     processedTextures.Add(texName);
-                    TranslationHooks.OnAssetTextureLoad(1, widget);
+
+                    switch (widget)
+                    {
+                        case UI2DSprite sprite:
+                            TranslationHooks.OnAssetTextureLoad(1, sprite);
+                            break;
+                        case UITexture tex:
+                            TranslationHooks.OnAssetTextureLoad(1, tex);
+                            break;
+                        default:
+                            TranslationHooks.OnAssetTextureLoad(1, widget);
+                            break;
+                    }
                 }
 
             isRetranslating = false;

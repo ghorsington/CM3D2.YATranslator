@@ -138,11 +138,9 @@ namespace CM3D2.YATranslator.Hook
             return OnArcTextureLoad(out result, name);
         }
 
-        public static void OnAssetTextureLoad(int forceTag, UIWidget im)
+        private static void TranslateAssetTexture(bool force, Texture2D texture2D, UIWidget im)
         {
-            bool force = forceTag != 0;
-            Texture2D texture2D;
-            if ((texture2D = im.material?.mainTexture as Texture2D) == null)
+            if (texture2D == null)
                 return;
 
             string textureName = texture2D.name;
@@ -155,7 +153,7 @@ namespace CM3D2.YATranslator.Hook
                 texture2D.name = texture2D.name.Substring(1);
             }
 
-            var args = new TextureTranslationEventArgs(textureName, im.name) {OriginalTexture = texture2D};
+            var args = new TextureTranslationEventArgs(textureName, im.name) { OriginalTexture = texture2D };
 
             AssetTextureLoad?.Invoke(im, args);
 
@@ -165,6 +163,21 @@ namespace CM3D2.YATranslator.Hook
             texture2D.name = "!" + textureName;
             texture2D.LoadImage(EmptyTextureData);
             texture2D.LoadImage(args.Data.data);
+        }
+
+        public static void OnAssetTextureLoad(int forceTag, UIWidget im)
+        {
+            TranslateAssetTexture(forceTag != 0, im.material?.mainTexture as Texture2D, im);
+        }
+
+        public static void OnAssetTextureLoad(int forceTag, UI2DSprite sprite)
+        {
+            TranslateAssetTexture(forceTag != 0, sprite.sprite2D?.texture ?? sprite.material?.mainTexture as Texture2D, sprite);
+        }
+
+        public static void OnAssetTextureLoad(int forceTag, UITexture tex)
+        {
+            TranslateAssetTexture(forceTag != 0, tex.mTexture as Texture2D ?? tex.material?.mainTexture as Texture2D, tex);
         }
 
         public static void OnTranslateText(int tag, UILabel label, ref string text)
