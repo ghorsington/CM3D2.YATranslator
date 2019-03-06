@@ -74,19 +74,19 @@ namespace CM3D2.YATranslator.Plugin
 
         public void Update()
         {
-            if (Input.GetKeyDown(KeyCode.F12))
+            if (Input.GetKeyDown(Settings.ReloadTranslationsKeyCode))
             {
                 Logger.WriteLine("Reloading config");
                 ReloadConfig();
                 InitConfig();
-                if (Settings.EnableStringReload)
+
+                if (Settings.EnableTranslationReload)
                 {
                     Logger.WriteLine("Reloading translations");
                     Memory.LoadTranslations();
                     Memory.ActivateLevelTranslations(CurrentLevel, false);
+                    TranslateExisting();
                 }
-
-                TranslateExisting();
             }
         }
 
@@ -142,7 +142,7 @@ namespace CM3D2.YATranslator.Plugin
             SaveConfig();
             Memory.OptimizationFlags = Settings.OptimizationFlags;
             Memory.LoadResource = Settings.LoadResourceTypes;
-            Memory.RetranslateText = Settings.EnableStringReload;
+            Memory.RetranslateText = Settings.EnableTranslationReload;
             Clipboard.Configuration = Settings.Clipboard;
             Subtitles.Configuration = Settings.Subtitles;
             Logger.DumpPath = Path.Combine(DataPath, "TranslationDumps");
@@ -299,7 +299,7 @@ namespace CM3D2.YATranslator.Plugin
 
         private void TranslateExisting(bool levelChanged = false)
         {
-            isRetranslating = !levelChanged && Settings.EnableStringReload;
+            isRetranslating = !levelChanged && Settings.EnableTranslationReload;
             var processedTextures = new HashSet<string>();
             foreach (var widget in FindObjectsOfType<UIWidget>())
                 if (widget is UILabel label)

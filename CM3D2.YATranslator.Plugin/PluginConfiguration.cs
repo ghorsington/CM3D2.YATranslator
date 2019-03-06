@@ -118,7 +118,7 @@ namespace CM3D2.YATranslator.Plugin
     [ConfigSection("Config")]
     public class PluginConfiguration
     {
-        public bool EnableStringReload = false;
+        public bool EnableTranslationReload = false;
         private readonly Regex parameterReplacementRegex = new Regex("{([^}]*)}");
         private readonly string[] texTemplateVariables = {"NAME", "HASH", "METADATA", "LEVEL"};
 
@@ -166,11 +166,20 @@ namespace CM3D2.YATranslator.Plugin
 
         public ResourceType LoadResourceTypes { get; private set; } = ResourceType.All;
 
+        public KeyCode ReloadTranslationsKeyCode { get; private set; } = KeyCode.F12;
+
+        public string ReloadTranslationsKey
+        {
+            get => ReloadTranslationsKeyCode.ToString();
+
+            set => ReloadTranslationsKeyCode = (KeyCode) Enum.Parse(typeof(KeyCode), value, true);
+        }
+
         public string MemoryOptimizations
         {
             get => OptimizationFlags.ToString();
 
-            set => OptimizationFlags = (MemoryOptimizations) Enum.Parse(typeof(MemoryOptimizations), value, true);
+            set => OptimizationFlags = (MemoryOptimizations)Enum.Parse(typeof(MemoryOptimizations), value, true);
         }
 
         public MemoryOptimizations OptimizationFlags { get; private set; } = Translation.MemoryOptimizations.None;
